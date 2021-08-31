@@ -29,12 +29,19 @@ object FP{
         fp.fromBits(bits)
         fp
     }
+    def apply(c: FPConfig, other: FP):FP={
+        val fp = new FP(c)
+        fp.fromOther(other)
+        fp
+    }
 }
 class FP(c: FPConfig) extends Bundle {
     
     val sign    = Bool
     val exp     = UInt(c.expSize  bits)
     val mant    = UInt(c.mantSize bits)
+
+    def getConfig: FPConfig = c
 
     def mantIsZero: Bool = {
         !mant.orR
@@ -67,7 +74,6 @@ class FP(c: FPConfig) extends Bundle {
     }
     
     def setZero() = {
-        sign    := False
         exp     := 0
         mant    := 0
     }
@@ -97,6 +103,19 @@ class FP(c: FPConfig) extends Bundle {
         mant    := bit(0, c.mantSize bits).asUInt
     }
 
+    def fromOther(that: FP) = {
+        // val flag = that.getFlag
+        // this.exp  := flag.mux(
+        //             B"00" -> 0,
+        //             B"00" -> (default -> true),
+        //             default -> that.exp
+        //             )
+        // TODO Flag select
+        this.sign := that.sign
+        this.exp  := (this.getConfig.bias - that.getConfig.bias)+that.exp
+        this.mant := that.mant.asBits.resizeLeft(this.getConfig.mantSize).asUInt
+    }
+
     def init() : FP = {
         sign init(False)
         exp  init(0)
@@ -105,3 +124,20 @@ class FP(c: FPConfig) extends Bundle {
     }
 }
 
+object FP_Test {
+  def main(args: Array[String]): Unit = {
+    // val fp32 = FP32(172.8000f)
+    val fp32 = FP32(122.2f)
+    println(fp32.toStringArray)
+    println(fp32.toIntArray)
+    println(fp32.getFloat)
+    // val fp321 = FP32(false,134,2936013)
+    // println(fp32.sign+"_"+fp32.exp+"_"+fp32.mant)
+    // println(fp321.toStringArray)
+    // val fp32 = new Array[FP32](16)
+    // for(i <- 0 to 15 ){
+      // val f = 3.3f+i
+      // fp32(i) = FP32(f)
+    // }
+  }
+}
