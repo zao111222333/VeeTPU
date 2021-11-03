@@ -23,6 +23,30 @@ class compare2(dataWidth:Int) extends BlackBox {
   // }
 }
 
+class compare2_diff(dataWidth:Int) extends Component {
+  
+  val io=new Bundle{
+    val i = new Bundle {
+      val X  = in Vec(UInt (dataWidth bit), 2)
+    }
+    val o = new Bundle {
+      val Max = out UInt (dataWidth bit)
+      val Diff = out Vec(UInt (dataWidth bit), 2)
+    }
+  }
+  noIoPrefix()
+
+  val compareArray = new compare2(dataWidth)
+  compareArray.io.i.X := io.i.X
+  io.o.Max := compareArray.io.o.Max
+
+  io.o.Diff(0) := compareArray.io.o.Max - io.i.X(0)
+  io.o.Diff(1) := compareArray.io.o.Max - io.i.X(1)
+
+
+}
+
+
 class compare16(dataWidth:Int) extends Component {
   
   val io=new Bundle{
