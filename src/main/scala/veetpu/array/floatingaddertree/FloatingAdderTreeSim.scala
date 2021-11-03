@@ -28,9 +28,9 @@ object FloatingAdderTreeSim {
                     )
     
     val compiled = SimConfig
-                    //.withWave
+                    .withWave
                     .withConfig(simConfig)
-                    .allOptimisation
+                    // .allOptimisation
                     .workspacePath("simWorkspace")
                     .compile(new FloatingAdderTree(fpatConfig))
 

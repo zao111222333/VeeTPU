@@ -17,7 +17,7 @@ class CsaArray_0(dataWidth: Int,compWidth: Int) extends Component {
                     UInt(1 bits))
   }
   noIoPrefix()
-  val sim = Reg(Bool)
+  // val sim = Reg(Bool)
   
   val onesComplement = Array.tabulate(4)((n) => {
     def gen:UInt={
@@ -69,6 +69,7 @@ class AdderTree16S(dataWidth: Int = 53, CSLA_PRE_WIDTH: Int) extends Component {
     }
   }
   noIoPrefix()
+  val sim = Reg(Bool)
   val csaArray_0 = Array.tabulate(4)((n) => {new CsaArray_0(dataWidth,compWidth)})
   for (n <- 0 to 4-1) {
     for (m <- 0 to 4-1) {
@@ -181,7 +182,7 @@ object AdderTree16S_COMPLIE {
     val report = SpinalConfig(
       mode=Verilog,
       targetDirectory=path
-    ).generate(new AdderTree16S(11,3))
+    ).generate(new AdderTree16S(23,3))
     report.mergeRTLSource(path+"/mergeRTL")
     report.printPruned
   }

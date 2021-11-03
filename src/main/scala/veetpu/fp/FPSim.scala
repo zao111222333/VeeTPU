@@ -1,9 +1,6 @@
 package veetpu.fp
 object  FP32{
-  val fpConfig = FPConfig(
-    					    expSize  = 8,
-    					    mantSize = 23
-    						  )
+  val fpConfig = FPConfig.FP32
   def toBigInt(s : String):BigInt={
     var out : BigInt = 0
     for ((b,i)<-s.reverse.zipWithIndex){

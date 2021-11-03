@@ -3,10 +3,39 @@ package veetpu.fp
 
 import spinal.core._
 
-case class FPConfig(
-                expSize    : Int,
-                mantSize   : Int
-                ) {
+object FPConfig{
+    def apply(expSize: Int,mantSize: Int):FPConfig={
+        val fpConfig = new FPConfig()
+        fpConfig.expSize_ = expSize
+        fpConfig.mantSize_ = mantSize
+        fpConfig}
+    def FP16():FPConfig={
+        val fpConfig = new FPConfig()
+        fpConfig.expSize_ = 5
+        fpConfig.mantSize_ = 10
+        fpConfig}
+    def FP32():FPConfig={
+        val fpConfig = new FPConfig()
+        fpConfig.expSize_ = 8
+        fpConfig.mantSize_ = 23
+        fpConfig}
+    def FP64():FPConfig={
+        val fpConfig = new FPConfig()
+        fpConfig.expSize_ = 11
+        fpConfig.mantSize_ = 52
+        fpConfig}
+    def BF16():FPConfig={
+        val fpConfig = new FPConfig()
+        fpConfig.expSize_ = 8
+        fpConfig.mantSize_ = 7
+        fpConfig}
+}
+
+class FPConfig(){
+    var expSize_  : Int = -1
+    var mantSize_ : Int = -1
+    def expSize  = this.expSize_
+    def mantSize = this.mantSize_
 
     def fullSize = 1 + expSize + mantSize
     def fullMantSize = 1 + mantSize
@@ -34,6 +63,9 @@ object FP{
         fp.fromOther(other)
         fp
     }
+    def FP16():FP={new FP(FPConfig.FP16)}
+    def FP32():FP={new FP(FPConfig.FP32)}
+    def FP64():FP={new FP(FPConfig.FP64)}
 }
 class FP(c: FPConfig) extends Bundle {
     
@@ -41,7 +73,7 @@ class FP(c: FPConfig) extends Bundle {
     val exp     = UInt(c.expSize  bits)
     val mant    = UInt(c.mantSize bits)
 
-    def getConfig: FPConfig = c
+    def config: FPConfig = c
 
     def mantIsZero: Bool = {
         !mant.orR
@@ -111,9 +143,9 @@ class FP(c: FPConfig) extends Bundle {
         //             default -> that.exp
         //             )
         // TODO Flag select
-        this.sign := that.sign
-        this.exp  := (this.getConfig.bias - that.getConfig.bias)+that.exp
-        this.mant := that.mant.asBits.resizeLeft(this.getConfig.mantSize).asUInt
+        sign := that.sign
+        exp  := ((config.bias - that.config.bias)+that.exp).resize(config.expSize)
+        mant := that.mant.asBits.resizeLeft(config.mantSize).asUInt
     }
 
     def init() : FP = {
@@ -121,6 +153,23 @@ class FP(c: FPConfig) extends Bundle {
         exp  init(0)
         mant init(0)
         this
+    }
+
+    override def clone: FP = {
+//         override def clone: Bundle = {
+//     if (hardtype != null) {
+//       val ret = hardtype().asInstanceOf[this.type]
+//       ret.hardtype = hardtype
+//       return ret
+//     }
+//     super.clone.asInstanceOf[Bundle]
+//   }
+
+        val fp = new FP(this.config)
+        // fp.sign := this.sign
+        // fp.exp  := this.exp
+        // fp.mant := this.mant
+        fp
     }
 }
 

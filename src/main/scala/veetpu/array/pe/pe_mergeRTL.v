@@ -683,7 +683,7 @@ assign odataD = idataD >>> ishiftD;
 assign odataE = idataE >>> ishiftE;
 assign odataF = idataF >>> ishiftF;
 endmodule              
-module booth_13w(
+module pe_booth_13w(
 input[12:0] a,
 input[12:0] b,
 output[25:0] r
@@ -732,143 +732,7 @@ csla #(26,5,5,1) csla_0(.in_01(sum_42_1), .in_02({carry_42_1[24:0],1'b0}), .out(
 assign r=result[25:0];
 
 endmodule
-module compare_logic_4in #(parameter WIDTH=11)(
-input [3:0] compare,
-input [WIDTH-1:0] iexp_0,
-input [WIDTH-1:0] iexp_1,
-input [WIDTH-1:0] iexp_2,
-input [WIDTH-1:0] iexp_3,
-input [WIDTH-1:0] pos_diff_01,
-input [WIDTH-1:0] pos_diff_12,
-input [WIDTH-1:0] pos_diff_23,
-input [WIDTH-1:0] pos_diff_30,
-input [WIDTH-1:0] pos_diff_02,
-input [WIDTH-1:0] pos_diff_13,
-input compare_02,
-input compare_13,
-output reg [WIDTH-1:0] oexp_max,
-output reg [WIDTH-1:0] oshift_0,
-output reg [WIDTH-1:0] oshift_1,
-output reg [WIDTH-1:0] oshift_2,
-output reg [WIDTH-1:0] oshift_3
-);
-always@(*)begin
-    case(compare)
-	     4'b0000:begin
-		      oexp_max = iexp_0; //any input exp
-				oshift_0 = 0;
-				oshift_1 = 0;
-				oshift_2 = 0;
-				oshift_3 = 0;
-		  end
-		  4'b0001:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b0010:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  4'b0011:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b0100:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b0101:begin
-		      oexp_max = compare_02 ? iexp_2      : iexp_0      ;
-				oshift_0 = compare_02 ? pos_diff_02 : 0           ;
-				oshift_1 = compare_02 ? pos_diff_12 : pos_diff_01 ;
-				oshift_2 = compare_02 ? 0           : pos_diff_02 ;
-				oshift_3 = compare_02 ? pos_diff_23 : pos_diff_30 ;
-		  end
-		  4'b0110:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  4'b0111:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b1000:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1001:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1010:begin
-		      oexp_max = compare_13 ? iexp_3      : iexp_1      ;
-				oshift_0 = compare_13 ? pos_diff_30 : pos_diff_01 ;
-				oshift_1 = compare_13 ? pos_diff_13 : 0           ;
-				oshift_2 = compare_13 ? pos_diff_23 : pos_diff_12 ;
-				oshift_3 = compare_13 ? 0           : pos_diff_13 ;
-		  end
-		  4'b1011:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1100:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b1101:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b1110:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  default:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = 0;
-				oshift_2 = 0;
-				oshift_3 = 0;
-		  end		  
-	 endcase
-end
-endmodule
+
 module pe_cpa#(parameter WIDTH = 64)
 (
 //input clk,
@@ -969,7 +833,7 @@ endgenerate
 assign sum_0[WIDTH] = carry_0[WIDTH-1];
 assign sum_1[WIDTH] = carry_1[WIDTH-1];
 endmodule
-module exp_compare_16in #(parameter WIDTH=11)(
+module exp_compare_16in#(parameter WIDTH=11)(
     input [WIDTH-1:0] iexp_00,
     input [WIDTH-1:0] iexp_01,
     input [WIDTH-1:0] iexp_02,
@@ -1005,333 +869,60 @@ module exp_compare_16in #(parameter WIDTH=11)(
     output  [WIDTH-1:0] oshift_15
 );
 
-wire [WIDTH-1:0] shift_00;
-wire [WIDTH-1:0] shift_01;
-wire [WIDTH-1:0] shift_02;
-wire [WIDTH-1:0] shift_03;
-wire [WIDTH-1:0] exp_max_0;
+wire [WIDTH-1:0] exp_max_0_0;
+wire [WIDTH-1:0] exp_max_1_0;
+wire [WIDTH-1:0] exp_max_2_0;
+wire [WIDTH-1:0] exp_max_3_0;
+wire [WIDTH-1:0] exp_max_4_0;
+wire [WIDTH-1:0] exp_max_5_0;
+wire [WIDTH-1:0] exp_max_6_0;
+wire [WIDTH-1:0] exp_max_7_0;
 
-wire [WIDTH-1:0] shift_04;
-wire [WIDTH-1:0] shift_05;
-wire [WIDTH-1:0] shift_06;
-wire [WIDTH-1:0] shift_07;
-wire [WIDTH-1:0] exp_max_1;
+wire [WIDTH-1:0] exp_max_0_1;
+wire [WIDTH-1:0] exp_max_1_1;
+wire [WIDTH-1:0] exp_max_2_1;
+wire [WIDTH-1:0] exp_max_3_1;
 
-wire [WIDTH-1:0] shift_08;
-wire [WIDTH-1:0] shift_09;
-wire [WIDTH-1:0] shift_10;
-wire [WIDTH-1:0] shift_11;
-wire [WIDTH-1:0] exp_max_2;
+wire [WIDTH-1:0] exp_max_0_2;
+wire [WIDTH-1:0] exp_max_1_2;
 
-wire [WIDTH-1:0] shift_12;
-wire [WIDTH-1:0] shift_13;
-wire [WIDTH-1:0] shift_14;
-wire [WIDTH-1:0] shift_15;
-wire [WIDTH-1:0] exp_max_3;
+assign exp_max_0_0 = (iexp_00>iexp_01) ? iexp_00 : iexp_01;
+assign exp_max_1_0 = (iexp_02>iexp_03) ? iexp_02 : iexp_03;
+assign exp_max_2_0 = (iexp_04>iexp_05) ? iexp_04 : iexp_05;
+assign exp_max_3_0 = (iexp_06>iexp_07) ? iexp_06 : iexp_07;
+assign exp_max_4_0 = (iexp_08>iexp_09) ? iexp_08 : iexp_09;
+assign exp_max_5_0 = (iexp_10>iexp_11) ? iexp_10 : iexp_11;
+assign exp_max_6_0 = (iexp_12>iexp_13) ? iexp_12 : iexp_13;
+assign exp_max_7_0 = (iexp_14>iexp_15) ? iexp_14 : iexp_15;
 
-wire [WIDTH-1:0] max_shift_0;
-wire [WIDTH-1:0] max_shift_1;
-wire [WIDTH-1:0] max_shift_2;
-wire [WIDTH-1:0] max_shift_3;
+assign exp_max_0_1 = (exp_max_0_0>exp_max_1_0) ? exp_max_0_0 : exp_max_1_0;
+assign exp_max_1_1 = (exp_max_2_0>exp_max_3_0) ? exp_max_2_0 : exp_max_3_0;
+assign exp_max_2_1 = (exp_max_4_0>exp_max_5_0) ? exp_max_4_0 : exp_max_5_0;
+assign exp_max_3_1 = (exp_max_6_0>exp_max_7_0) ? exp_max_6_0 : exp_max_7_0;
 
-exp_compare_unit_4in #(WIDTH)u_compare_0(
-   .iexp_0(iexp_00),
-	.iexp_1(iexp_01),
-	.iexp_2(iexp_02),
-	.iexp_3(iexp_03),
-	.oexp_max(exp_max_0),
-	.oshift_0(shift_00),
-	.oshift_1(shift_01),
-	.oshift_2(shift_02),
-	.oshift_3(shift_03)
-);
+assign exp_max_0_2 = (exp_max_0_1>exp_max_1_1) ? exp_max_0_1 : exp_max_1_1;
+assign exp_max_1_2 = (exp_max_2_1>exp_max_3_1) ? exp_max_2_1 : exp_max_3_1;
 
+assign oexp_max = (exp_max_0_2>exp_max_1_2) ? exp_max_0_2 : exp_max_1_2;
 
-exp_compare_unit_4in #(WIDTH)u_compare_1(
-   .iexp_0(iexp_04),
-	.iexp_1(iexp_05),
-	.iexp_2(iexp_06),
-	.iexp_3(iexp_07),
-	.oexp_max(exp_max_1),
-	.oshift_0(shift_04),
-	.oshift_1(shift_05),
-	.oshift_2(shift_06),
-	.oshift_3(shift_07)
-);
-
-exp_compare_unit_4in #(WIDTH)u_compare_2(
-   .iexp_0(iexp_08),
-	.iexp_1(iexp_09),
-	.iexp_2(iexp_10),
-	.iexp_3(iexp_11),
-	.oexp_max(exp_max_2),
-	.oshift_0(shift_08),
-	.oshift_1(shift_09),
-	.oshift_2(shift_10),
-	.oshift_3(shift_11)
-);
-
-
-exp_compare_unit_4in #(WIDTH)u_compare_3(
-   .iexp_0(iexp_12),
-	.iexp_1(iexp_13),
-	.iexp_2(iexp_14),
-	.iexp_3(iexp_15),
-	.oexp_max(exp_max_3),
-	.oshift_0(shift_12),
-	.oshift_1(shift_13),
-	.oshift_2(shift_14),
-	.oshift_3(shift_15)
-);
-
-exp_compare_unit_4in #(WIDTH)u_compare_4(
-   .iexp_0(exp_max_0),
-	.iexp_1(exp_max_1),
-	.iexp_2(exp_max_2),
-	.iexp_3(exp_max_3),
-	.oexp_max(oexp_max),
-	.oshift_0(max_shift_0),
-	.oshift_1(max_shift_1),
-	.oshift_2(max_shift_2),
-	.oshift_3(max_shift_3)
-);
-
-assign oshift_00 = shift_00 + max_shift_0;
-assign oshift_01 = shift_01 + max_shift_0;
-assign oshift_02 = shift_02 + max_shift_0;
-assign oshift_03 = shift_03 + max_shift_0;
-
-assign oshift_04 = shift_04 + max_shift_1;
-assign oshift_05 = shift_05 + max_shift_1;
-assign oshift_06 = shift_06 + max_shift_1;
-assign oshift_07 = shift_07 + max_shift_1;
-
-assign oshift_08 = shift_08 + max_shift_2;
-assign oshift_09 = shift_09 + max_shift_2;
-assign oshift_10 = shift_10 + max_shift_2;
-assign oshift_11 = shift_11 + max_shift_2;
-
-assign oshift_12 = shift_12 + max_shift_3;
-assign oshift_13 = shift_13 + max_shift_3;
-assign oshift_14 = shift_14 + max_shift_3;
-assign oshift_15 = shift_15 + max_shift_3;
-
+assign oshift_00 = oexp_max - iexp_00;
+assign oshift_01 = oexp_max - iexp_01;
+assign oshift_02 = oexp_max - iexp_02;
+assign oshift_03 = oexp_max - iexp_03;
+assign oshift_04 = oexp_max - iexp_04;
+assign oshift_05 = oexp_max - iexp_05;
+assign oshift_06 = oexp_max - iexp_06;
+assign oshift_07 = oexp_max - iexp_07;
+assign oshift_08 = oexp_max - iexp_08;
+assign oshift_09 = oexp_max - iexp_09;
+assign oshift_10 = oexp_max - iexp_10;
+assign oshift_11 = oexp_max - iexp_11;
+assign oshift_12 = oexp_max - iexp_12;
+assign oshift_13 = oexp_max - iexp_13;
+assign oshift_14 = oexp_max - iexp_14;
+assign oshift_15 = oexp_max - iexp_15;
 endmodule
-module exp_compare_unit_4in#(parameter WIDTH=11)(
-    input [WIDTH-1:0] iexp_0,
-	 input [WIDTH-1:0] iexp_1,
-	 input [WIDTH-1:0] iexp_2,
-	 input [WIDTH-1:0] iexp_3,
-	 output [WIDTH-1:0] oexp_max,
-	 output [WIDTH-1:0] oshift_0,
-	 output [WIDTH-1:0] oshift_1,
-	 output [WIDTH-1:0] oshift_2,
-	 output [WIDTH-1:0] oshift_3
-);
-wire [WIDTH:0] diff_01; //different between iexp_0 and iexp_1
-wire [WIDTH:0] diff_12;
-wire [WIDTH:0] diff_23;
-wire [WIDTH:0] diff_30;
-wire [WIDTH:0] diff_02;
-wire [WIDTH:0] diff_13;
 
-wire [WIDTH-1:0] inv_iexp_0;
-wire [WIDTH-1:0] inv_iexp_1;
-wire [WIDTH-1:0] inv_iexp_2;
-wire [WIDTH-1:0] inv_iexp_3;
-
-assign inv_iexp_0 = ~iexp_0;
-assign inv_iexp_1 = ~iexp_1;
-assign inv_iexp_2 = ~iexp_2;
-assign inv_iexp_3 = ~iexp_3;
-
-assign diff_01 = {1'b0,iexp_0}+{1'b1,inv_iexp_1};
-assign diff_12 = {1'b0,iexp_1}+{1'b1,inv_iexp_2};
-assign diff_23 = {1'b0,iexp_2}+{1'b1,inv_iexp_3};
-assign diff_30 = {1'b0,iexp_3}+{1'b1,inv_iexp_0};
-assign diff_02 = {1'b0,iexp_0}+{1'b1,inv_iexp_2};
-assign diff_13 = {1'b0,iexp_1}+{1'b1,inv_iexp_3};
-
-/*
-assign diff_01 = iexp_0-iexp_1;
-assign diff_12 = iexp_1-iexp_2;
-assign diff_23 = iexp_2-iexp_3;
-assign diff_30 = iexp_3-iexp_0;
-assign diff_02 = iexp_0-iexp_2;
-assign diff_13 = iexp_1-iexp_3;
-*/
-
-wire compare_01 = diff_01[WIDTH];
-wire compare_12 = diff_12[WIDTH];
-wire compare_23 = diff_23[WIDTH];
-wire compare_30 = diff_30[WIDTH];
-wire compare_02 = diff_02[WIDTH];
-wire compare_13 = diff_13[WIDTH];
-
-wire [WIDTH-1:0] pos_diff_01; //postive of the diff_01
-wire [WIDTH-1:0] pos_diff_12;
-wire [WIDTH-1:0] pos_diff_23;
-wire [WIDTH-1:0] pos_diff_30;
-wire [WIDTH-1:0] pos_diff_02;
-wire [WIDTH-1:0] pos_diff_13;
-
-/*
-assign pos_diff_01 = compare_01 ? (~diff_01[WIDTH-1:0]+1'b1) : (diff_01[WIDTH-1:0]);
-assign pos_diff_12 = compare_12 ? (~diff_12[WIDTH-1:0]+1'b1) : (diff_12[WIDTH-1:0]);
-assign pos_diff_23 = compare_23 ? (~diff_23[WIDTH-1:0]+1'b1) : (diff_23[WIDTH-1:0]);
-assign pos_diff_30 = compare_30 ? (~diff_30[WIDTH-1:0]+1'b1) : (diff_30[WIDTH-1:0]);
-assign pos_diff_02 = compare_02 ? (~diff_02[WIDTH-1:0]+1'b1) : (diff_02[WIDTH-1:0]);
-assign pos_diff_13 = compare_13 ? (~diff_13[WIDTH-1:0]+1'b1) : (diff_13[WIDTH-1:0]);
-*/
-assign pos_diff_01 = compare_01 ? (~diff_01[WIDTH-1:0]) : (diff_01[WIDTH-1:0]+1'b1);
-assign pos_diff_12 = compare_12 ? (~diff_12[WIDTH-1:0]) : (diff_12[WIDTH-1:0]+1'b1);
-assign pos_diff_23 = compare_23 ? (~diff_23[WIDTH-1:0]) : (diff_23[WIDTH-1:0]+1'b1);
-assign pos_diff_30 = compare_30 ? (~diff_30[WIDTH-1:0]) : (diff_30[WIDTH-1:0]+1'b1);
-assign pos_diff_02 = compare_02 ? (~diff_02[WIDTH-1:0]) : (diff_02[WIDTH-1:0]+1'b1);
-assign pos_diff_13 = compare_13 ? (~diff_13[WIDTH-1:0]) : (diff_13[WIDTH-1:0]+1'b1);
-
-wire[3:0] compare = {compare_01,compare_12,compare_23,compare_30};
-/*
-always@(*)begin
-    case(compare)
-	     4'b0000:begin
-		      oexp_max = iexp_0; //any input exp
-				oshift_0 = 0;
-				oshift_1 = 0;
-				oshift_2 = 0;
-				oshift_3 = 0;
-		  end
-		  4'b0001:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b0010:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  4'b0011:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b0100:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b0101:begin
-		      oexp_max = compare_02 ? iexp_2      : iexp_0      ;
-				oshift_0 = compare_02 ? pos_diff_02 : 0           ;
-				oshift_1 = compare_02 ? pos_diff_12 : pos_diff_01 ;
-				oshift_2 = compare_02 ? 0           : pos_diff_02 ;
-				oshift_3 = compare_02 ? pos_diff_23 : pos_diff_30 ;
-		  end
-		  4'b0110:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  4'b0111:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = pos_diff_01;
-				oshift_2 = pos_diff_02;
-				oshift_3 = pos_diff_30;
-		  end
-		  4'b1000:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1001:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1010:begin
-		      oexp_max = compare_13 ? iexp_3      : iexp_1      ;
-				oshift_0 = compare_13 ? pos_diff_30 : pos_diff_01 ;
-				oshift_1 = compare_13 ? pos_diff_13 : 0           ;
-				oshift_2 = compare_13 ? pos_diff_23 : pos_diff_12 ;
-				oshift_3 = compare_13 ? 0           : pos_diff_13 ;
-		  end
-		  4'b1011:begin
-		      oexp_max = iexp_1;
-				oshift_0 = pos_diff_01;
-				oshift_1 = 0;
-				oshift_2 = pos_diff_12;
-				oshift_3 = pos_diff_13;
-		  end
-		  4'b1100:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b1101:begin
-		      oexp_max = iexp_2;
-				oshift_0 = pos_diff_02;
-				oshift_1 = pos_diff_12;
-				oshift_2 = 0;
-				oshift_3 = pos_diff_23;
-		  end
-		  4'b1110:begin
-		      oexp_max = iexp_3;
-				oshift_0 = pos_diff_30;
-				oshift_1 = pos_diff_13;
-				oshift_2 = pos_diff_23;
-				oshift_3 = 0;
-		  end
-		  default:begin
-		      oexp_max = iexp_0;
-				oshift_0 = 0;
-				oshift_1 = 0;
-				oshift_2 = 0;
-				oshift_3 = 0;
-		  end		  
-	 endcase
-end
-*/
-compare_logic_4in #(WIDTH) u_CL(
-.compare    (compare    ),
-.iexp_0     (iexp_0     ),
-.iexp_1     (iexp_1     ),
-.iexp_2     (iexp_2     ),
-.iexp_3     (iexp_3     ),
-.pos_diff_01(pos_diff_01),
-.pos_diff_12(pos_diff_12),
-.pos_diff_23(pos_diff_23),
-.pos_diff_30(pos_diff_30),
-.pos_diff_02(pos_diff_02),
-.pos_diff_13(pos_diff_13),
-.compare_02 (compare_02 ),
-.compare_13 (compare_13 ),
-.oexp_max   (oexp_max   ),
-.oshift_0   (oshift_0   ),
-.oshift_1   (oshift_1   ),
-.oshift_2   (oshift_2   ),
-.oshift_3   (oshift_3   )
-);
-
-
-endmodule
 
 module input_processing(
     input         clk      ,
@@ -1981,22 +1572,22 @@ module mul_array #(parameter WIDTH = 13)(
 );
 
 //mul array
-booth_13w u_booth00(.a(i_man_A00),.b(i_man_B00), .r(oman_AB00));
-booth_13w u_booth01(.a(i_man_A01),.b(i_man_B01), .r(oman_AB01));
-booth_13w u_booth02(.a(i_man_A02),.b(i_man_B02), .r(oman_AB02));
-booth_13w u_booth03(.a(i_man_A03),.b(i_man_B03), .r(oman_AB03));
-booth_13w u_booth04(.a(i_man_A04),.b(i_man_B04), .r(oman_AB04));
-booth_13w u_booth05(.a(i_man_A05),.b(i_man_B05), .r(oman_AB05));
-booth_13w u_booth06(.a(i_man_A06),.b(i_man_B06), .r(oman_AB06));
-booth_13w u_booth07(.a(i_man_A07),.b(i_man_B07), .r(oman_AB07));
-booth_13w u_booth08(.a(i_man_A08),.b(i_man_B08), .r(oman_AB08));
-booth_13w u_booth09(.a(i_man_A09),.b(i_man_B09), .r(oman_AB09));
-booth_13w u_booth10(.a(i_man_A10),.b(i_man_B10), .r(oman_AB10));
-booth_13w u_booth11(.a(i_man_A11),.b(i_man_B11), .r(oman_AB11));
-booth_13w u_booth12(.a(i_man_A12),.b(i_man_B12), .r(oman_AB12));
-booth_13w u_booth13(.a(i_man_A13),.b(i_man_B13), .r(oman_AB13));
-booth_13w u_booth14(.a(i_man_A14),.b(i_man_B14), .r(oman_AB14));
-booth_13w u_booth15(.a(i_man_A15),.b(i_man_B15), .r(oman_AB15));
+pe_booth_13w u_booth00(.a(i_man_A00),.b(i_man_B00), .r(oman_AB00));
+pe_booth_13w u_booth01(.a(i_man_A01),.b(i_man_B01), .r(oman_AB01));
+pe_booth_13w u_booth02(.a(i_man_A02),.b(i_man_B02), .r(oman_AB02));
+pe_booth_13w u_booth03(.a(i_man_A03),.b(i_man_B03), .r(oman_AB03));
+pe_booth_13w u_booth04(.a(i_man_A04),.b(i_man_B04), .r(oman_AB04));
+pe_booth_13w u_booth05(.a(i_man_A05),.b(i_man_B05), .r(oman_AB05));
+pe_booth_13w u_booth06(.a(i_man_A06),.b(i_man_B06), .r(oman_AB06));
+pe_booth_13w u_booth07(.a(i_man_A07),.b(i_man_B07), .r(oman_AB07));
+pe_booth_13w u_booth08(.a(i_man_A08),.b(i_man_B08), .r(oman_AB08));
+pe_booth_13w u_booth09(.a(i_man_A09),.b(i_man_B09), .r(oman_AB09));
+pe_booth_13w u_booth10(.a(i_man_A10),.b(i_man_B10), .r(oman_AB10));
+pe_booth_13w u_booth11(.a(i_man_A11),.b(i_man_B11), .r(oman_AB11));
+pe_booth_13w u_booth12(.a(i_man_A12),.b(i_man_B12), .r(oman_AB12));
+pe_booth_13w u_booth13(.a(i_man_A13),.b(i_man_B13), .r(oman_AB13));
+pe_booth_13w u_booth14(.a(i_man_A14),.b(i_man_B14), .r(oman_AB14));
+pe_booth_13w u_booth15(.a(i_man_A15),.b(i_man_B15), .r(oman_AB15));
 
 endmodule
 module pip1_processing (
@@ -2601,7 +2192,7 @@ wire [1:0] exp_delta;
 //assign  norm_shift = mode_sel_pip2[1] ? i_result_pip2 : i_result_pip2 << i_lza_cnt;
 assign  norm_shift =pre_shift << i_lza_cnt;
 //rounding
-round #(106) u_round(
+pe_round #(106) u_round(
     .data_in(norm_shift[106:1]),
     .precision(mode_sel_pip2),
     .norm_out(norm_out),
@@ -2633,6 +2224,7 @@ always@(*)begin
         case(mode_sel_pip2)
             2'b00: norm_exp_fp16 =(cort_exp > 15) ? (cort_exp - 15) : 10'h3ff;
             2'b01: norm_exp_fp32 =(cort_exp >153) ? (cort_exp -153) : 10'h3ff; //127+26=153
+            default: norm_exp_fp32 =(cort_exp >153) ? (cort_exp -153) : 10'h3ff; //127+26=153
         endcase
     end
 end
@@ -2654,6 +2246,7 @@ always@(*)begin
         2'b01: norm_result = {32'b0,i_sign_pip2, (norm_exp_fp32[9:8]==2'b0) ? norm_exp_fp32[7:0] : 8'hff, norm_out[22:0]};
         //2'b01: norm_result = {i_sign_pip2, (norm_exp_fp32[9:8]==2'b0) ? norm_exp_fp32[7:0] : 8'hff, norm_out[22:0], 32'b0};
         2'b10: norm_result = {i_sign_AB_fp64_pip2, norm_exp_fp64[11]? 11'h7ff : norm_exp_fp64[10:0], norm_out};
+        default: norm_result = {i_sign_AB_fp64_pip2, norm_exp_fp64[11]? 11'h7ff : norm_exp_fp64[10:0], norm_out};
     endcase
 end
 
@@ -2703,11 +2296,12 @@ case(code)
 	3'b101 : pp = ~mpb+1;
 	3'b110 : pp = ~mpb+1;
 	3'b111 : pp = 0;
+    default : pp = 0;
 endcase
 end
  endmodule
 
-module round #(parameter WIDTH=106)(
+module pe_round #(parameter WIDTH=106)(
     input [WIDTH-1:0] data_in,
     input [1:0] precision,
     output reg [51:0] norm_out,
@@ -2767,8 +2361,9 @@ end
 always@(*)begin
     case(precision)
         FP64: norm_out = norm_64[52] ? norm_64[52:1] : norm_64[51:0];
-	FP32: norm_out = norm_32[23] ? {29'b0,norm_32[23:1]} : {29'b0,norm_32[22:0]};
-	FP16: norm_out = norm_16[10] ? {42'b0,norm_16[10:1]} : {42'b0,norm_16[ 9:0]};
+	    FP32: norm_out = norm_32[23] ? {29'b0,norm_32[23:1]} : {29'b0,norm_32[22:0]};
+	    FP16: norm_out = norm_16[10] ? {42'b0,norm_16[10:1]} : {42'b0,norm_16[ 9:0]};
+        default: norm_out = norm_16[10] ? {42'b0,norm_16[10:1]} : {42'b0,norm_16[ 9:0]};
     endcase
 end
 // 105 52 exp_delta
@@ -2781,7 +2376,9 @@ always@(*)begin
         FP64: exp_delta = {(man_64[105]&norm_64[52]),(man_64[105]|norm_64[52])};
 	     FP32: exp_delta = {(man_32[ 47]&norm_32[23]),(man_32[ 47]|norm_32[23])};
 	     FP16: exp_delta = {(man_16[ 23]&norm_16[10]),(man_16[ 23]|norm_16[10])};
+         default: exp_delta = {(man_16[ 23]&norm_16[10]),(man_16[ 23]|norm_16[10])};
     endcase
 end
 
 endmodule
+

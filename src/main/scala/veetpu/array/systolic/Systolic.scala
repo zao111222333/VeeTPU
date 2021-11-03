@@ -6,51 +6,70 @@ import spinal.lib._
 // import spinal.lib.experimental.math._
 import veetpu.ip._
 import veetpu.fp._
-
-
-class Systolic(size_M: Int=16, size_N: Int=16) extends Component{
+// import build
+class Vector(vecSize: Int=16) extends Component{
   val fpatConfig = floatingaddertree.FPATConfig(
-                      fpConfig = FPConfig(11, 52), 
-                      size     = size_N,
+                      fpConfig = FPConfig.FP64, 
+                      size     = vecSize,
                       accuracy = 0,
                       adderTree_CLSA_PRE_WIDTH = 5
                       )
-  import fpatConfig._  
-  val control = new Bundle{
-      val mode_sel     = in Vec(Bits(2 bits),size_M)
-      // val pingpong_sel = in Vec(Bool,size_N)
-      val w_addr       = in UInt(log2Up(size_M) bits)
+  import fpatConfig._
+  val ctl = new Bundle{
+      val mode_sel     = in Bits(2 bits)
+  }
+  val io = new Bundle{
+    val i = new Bundle{
+      val input = in Vec(Bits(256 bits),vecSize)
+      val weight = in Vec(Bits(256 bits),vecSize)
+    }
+    val o = new Bundle{
+      val vecOut = out (FP(fpConfig))
+      // val mode_sel = out Vec(Bits(2 bits),vecNum)
+    }
+  }
+  val peVec = Array.tabulate(vecSize)((s) => {new pe.PE_16in_top})
+  val fpAddTree = new floatingaddertree.MultiFloatingAdderTree(fpatConfig)
+  Array.tabulate(vecSize)((s) => {
+    peVec(s).io.mode_sel := ctl.mode_sel
+    peVec(s).io.A := io.i.input(s)
+    peVec(s).io.B := io.i.weight(s)
+    fpAddTree.io.i.X(s) := FP(fpConfig, peVec(s).io.result)
+  })
+  fpAddTree.ctl.mode_sel := peVec(0).io.mode_out
+  io.o.vecOut := fpAddTree.io.o.Y
+}
+
+class Systolic(vecNum: Int=16, vecSize: Int=16) extends Component{
+  val ctl = new Bundle{
+      val mode_sel     = in Vec(Bits(2 bits),vecNum)
+      // val pingpong_sel = in Vec(Bool,vecSize)
+      val w_addr       = in UInt(log2Up(vecNum) bits)
       val w_en         = in Bool
   }
   val io = new Bundle{
     val i = new Bundle{
-      val ifmap = in Vec(Bits(256 bits),size_N)
-      val wight = in Vec(Bits(256 bits),size_N)
+      val input  = in Vec(Bits(256 bits),vecSize)
+      val weight = in Vec(Bits(256 bits),vecSize)
     }
     val o = new Bundle{
-      val sum = out Vec(FP(fpConfig),size_M)
-      // val mode_sel = out Vec(Bits(2 bits),size_M)
+      val arrayOut = out Vec(FP(FPConfig.FP64),vecNum)
+      // val mode_sel = out Vec(Bits(2 bits),vecNum)
     }
   }
-  
-  //  pingpong_sel    true  false
-  //  weightBuffer(0)   w     r
-  //  weightBuffer(1)   r     w
-  val weightBuffer = Array.tabulate(size_M,size_N)((m,n) => { RegNextWhen(io.i.wight(n), control.w_addr===U(m) & control.w_en) })
-  val ifmapBuffer  = Array.tabulate(size_M,size_N)((m,n) => { (if (m==0) Bits(256 bits) else Reg(Bits(256 bits))) })
-  Array.tabulate(size_M,size_N)((m,n) => {
-    ifmapBuffer(m)(n) := (if (m==0) io.i.ifmap(n) else ifmapBuffer(m-1)(n) )
+  val weightRegs = Array.tabulate(vecNum,vecSize)((n,s) => { RegNextWhen(io.i.weight(s), ctl.w_addr===U(n) & ctl.w_en) })
+  val inputRegs  = Array.tabulate(vecNum,vecSize)((n,s) => { (if (n==0) Bits(256 bits) else Reg(Bits(256 bits))) })
+  Array.tabulate(vecNum,vecSize)((n,s) => {
+    inputRegs(n)(s) := (if (n==0) io.i.input(n) else inputRegs(n-1)(n) )
   })
-  val peArray = Array.tabulate(size_M,size_N)((m,n) => {new pe.PE_16in_top})
-  val fpAddTreeArray = Array.tabulate(size_M)((m) => {new floatingaddertree.FloatingAdderTree(fpatConfig)})
-  Array.tabulate(size_M,size_N)((m,n) => {
-    peArray(m)(n).io.mode_sel := control.mode_sel(m)
-    peArray(m)(n).io.A := ifmapBuffer(m)(n)
-    peArray(m)(n).io.B := weightBuffer(m)(n)
-    fpAddTreeArray(m).io.i.X(n) := FP(fpConfig, peArray(m)(n).io.result)
+  val vecArray = Array.tabulate(vecNum)((n) => {new Vector(vecSize)})
+  Array.tabulate(vecNum,vecSize)((n,s) => {
+    vecArray(n).io.i.input(s) := inputRegs(n)(s)
+    vecArray(n).io.i.weight(s):= weightRegs(n)(s)
   })
-  Array.tabulate(size_M)((m) => {
-    io.o.sum(m) := fpAddTreeArray(m).io.o.Y
+  Array.tabulate(vecNum)((n) => {
+    vecArray(n).ctl.mode_sel := ctl.mode_sel(n)
+    io.o.arrayOut(n) := vecArray(n).io.o.vecOut
   })
 }
 
