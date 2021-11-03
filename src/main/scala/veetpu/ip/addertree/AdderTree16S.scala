@@ -38,6 +38,7 @@ class CsaArray_0(dataWidth: Int,compWidth: Int) extends Component {
   //                       *
   //                       *
   //                       *
+  // x 4
   val csa42 = new MyCSA42(fullWidth)
   val csa32 = new CSA32_UNIT
   for (n <- 0 to 4-1) {
