@@ -204,7 +204,7 @@ io.o.Y := pipe_3.stageOut.Y
 object FloatingAdder_Verilog {
   def main(args: Array[String]): Unit = {
     val fpatConfig = FPATConfig(
-                      fpConfig = FPConfig(8, 23), 
+                      fpConfig = FPConfig(10, 53), 
                       size     = 2,
                       accuracy = 0,
                       adderTree_CLSA_PRE_WIDTH = 5
