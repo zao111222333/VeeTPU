@@ -731,29 +731,29 @@ class MULExpCompare_Verif() extends Component{
     verify.equal.diff.add.FP64 := verify.o.diff.add.FP64===io.o.diff.add.FP64
   }
   when(ctl.i.mode.isBF16) {
-    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.BF16===verify.equal.diff.mul.BF16
-    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.BF16===verify.equal.diff.mac.BF16
-    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.BF16===verify.equal.diff.add.BF16
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.BF16 & verify.equal.diff.mul.BF16
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.BF16 & verify.equal.diff.mac.BF16
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.BF16 & verify.equal.diff.add.BF16
     }.otherwise {verify.EQUAL := False}
   }.elsewhen(ctl.i.mode.isFP16) {
-    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP16===verify.equal.diff.mul.FP16
-    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP16===verify.equal.diff.mac.FP16
-    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP16===verify.equal.diff.add.FP16
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP16 & verify.equal.diff.mul.FP16
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP16 & verify.equal.diff.mac.FP16
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP16 & verify.equal.diff.add.FP16
     }.otherwise {verify.EQUAL := False}
   }.elsewhen(ctl.i.mode.isFP32) {
-    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP32===verify.equal.diff.mul.FP32
-    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP32===verify.equal.diff.mac.FP32
-    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP32===verify.equal.diff.add.FP32
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP32 & verify.equal.diff.mul.FP32
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP32 & verify.equal.diff.mac.FP32
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP32 & verify.equal.diff.add.FP32
     }.otherwise {verify.EQUAL := False}
   }.elsewhen(ctl.i.mode.isTF32) {
-    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.TF32===verify.equal.diff.mul.TF32
-    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.TF32===verify.equal.diff.mac.TF32
-    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.TF32===verify.equal.diff.add.TF32
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.TF32 & verify.equal.diff.mul.TF32
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.TF32 & verify.equal.diff.mac.TF32
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.TF32 & verify.equal.diff.add.TF32
     }.otherwise {verify.EQUAL := False}
   }.elsewhen(ctl.i.mode.isFP64) {
-    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP64===verify.equal.diff.mul.FP64
-    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP64===verify.equal.diff.mac.FP64
-    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP64===verify.equal.diff.add.FP64
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.FP64 & verify.equal.diff.mul.FP64
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.max.mac.FP64 & verify.equal.diff.mac.FP64
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.max.add.FP64 & verify.equal.diff.add.FP64
     }.otherwise {verify.EQUAL := False}
   }.otherwise {
     verify.EQUAL := False
