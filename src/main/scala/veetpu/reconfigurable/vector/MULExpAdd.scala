@@ -3,9 +3,6 @@ package veetpu.reconfigurable.vector
 import spinal.core._
 import spinal.lib._
 
-import ip._
-import fp._
-
 
 /* --------------------------------                             -------------------------------- *\
 ** --------------------------------    ____    _____   _        -------------------------------- **
