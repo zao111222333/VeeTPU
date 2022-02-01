@@ -1,5 +1,5 @@
 package veetpu.array.floatingaddertree
-import veetpu.fp._
+import fp._
 object  Data1{
   val FPData = Array(
   Array("1","10011101","00100100011011001100000"),
@@ -19,7 +19,7 @@ object  Data1{
   Array("0","10011011","01110101101100101000100"),
   Array("0","10011011","00000001100110001011101"))
   val FP32_List = Array.tabulate(16)((n) => {
-    FP32(FPData(n)(0),FPData(n)(1),FPData(n)(2))
+    FPSim32(FPData(n)(0),FPData(n)(1),FPData(n)(2))
   })
 }
 

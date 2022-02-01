@@ -2,7 +2,7 @@ package veetpu.array.floatingaddertree
 
 import spinal.core._
 import spinal.lib._
-import veetpu.fp._
+import fp._
 // sbt "runMain veetpu.array.floatingaddertree.FloatingAdderTree_Verilog"
 
 class Correct(fpConfig: FPConfig) extends Component{
@@ -10,7 +10,7 @@ class Correct(fpConfig: FPConfig) extends Component{
     val i = new Bundle{
       val X = in (FP(fpConfig))
       val hasFlag = in (FPHasFlag())
-      val hasCarry = in Bool
+      val hasCarry = in Bool()
     }
     val o = new Bundle{
       val Y = out (FP(fpConfig))

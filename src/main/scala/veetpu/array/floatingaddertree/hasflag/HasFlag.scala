@@ -2,7 +2,7 @@ package veetpu.array.floatingaddertree
 
 import spinal.core._
 import spinal.lib._
-import veetpu.fp._
+import fp._
 // sbt "runMain veetpu.array.floatingaddertree.FloatingAdderTree_Verilog"
 case class FPHasFlag() extends Bundle {
     val hasPInf = Bool

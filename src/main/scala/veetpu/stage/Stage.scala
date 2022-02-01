@@ -2,7 +2,7 @@ package veetpu.stage
 
 import spinal.core._
 import spinal.lib._
-import veetpu.fp._
+import fp._
 
 object Stage {
   def apply(isStage: Boolean,data: Bundle): Data = {

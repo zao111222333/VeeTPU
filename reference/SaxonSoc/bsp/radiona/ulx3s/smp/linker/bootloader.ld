@@ -1,4 +1,0 @@
-RAM_ORIGIN = 0x10A00000;
-RAM_LENGTH = 8K;
-
-INCLUDE bootloader_ram.ld

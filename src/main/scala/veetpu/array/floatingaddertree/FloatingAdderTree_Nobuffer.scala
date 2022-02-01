@@ -4,8 +4,8 @@ import spinal.core._
 import spinal.lib._
 // sbt "runMain veetpu.array.floatingaddertree.FloatingAdderTree_Nobuffer_Verilog"
 // import spinal.lib.experimental.math._
-import veetpu.ip._
-import veetpu.fp._
+import ip._
+import fp._
 import veetpu.stage._
 
 

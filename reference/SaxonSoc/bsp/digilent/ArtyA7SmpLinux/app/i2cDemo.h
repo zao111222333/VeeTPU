@@ -1,5 +1,0 @@
-#pragma once
-
-#define I2C_CTRL 0x10030000
-#define I2C_CTRL_PLIC_INTERRUPT 42
-#define I2C_CTRL_HZ SYSTEM_MACHINE_TIMER_HZ

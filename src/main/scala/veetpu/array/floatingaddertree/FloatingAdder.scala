@@ -4,8 +4,8 @@ import spinal.core._
 import spinal.lib._
 // sbt "runMain veetpu.array.floatingaddertree.FloatingAdder_Verilog"
 // import spinal.lib.experimental.math._
-import veetpu.ip._
-import veetpu.fp._
+import ip._
+import fp._
 import veetpu.stage._
 
 
@@ -35,7 +35,7 @@ class FloatingAdder(fpatConfig: FPATConfig) extends Component{
       val hasFlag = new HasFlag(size,fpConfig)
     }
     
-    val stageOut = Reg({new Bundle{
+    val stageOut = ({new Bundle{
       val sign = Vec(Bool, size)
       val compare = new Bundle {
         val Max = UInt (fpConfig.expSize bit)
@@ -158,7 +158,7 @@ class FloatingAdder(fpatConfig: FPATConfig) extends Component{
     // 不确定位宽是否正确
     val diff = stageModule.leadingZeros.io.o
     val exp_  = pipe_1.stageOut.Max +^ 1 - diff
-    val stageOut = Reg({new Bundle{
+    val stageOut = ({new Bundle{
       val sign = Bool
       val exp = UInt(exp_.getWidth bits)
       val shifterResult = UInt(shiftConfig.dataOutWidth bits)

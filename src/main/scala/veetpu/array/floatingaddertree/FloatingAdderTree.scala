@@ -4,16 +4,16 @@ import spinal.core._
 import spinal.lib._
 // sbt "runMain veetpu.array.floatingaddertree.FloatingAdderTree_Verilog"
 // import spinal.lib.experimental.math._
-import veetpu.ip._
-import veetpu.fp._
+import ip._
+import fp._
 import veetpu.stage._
 
 
 case class FPATConfig(
           fpConfig: FPConfig,
           size: Int,
-          accuracy: Int,
-          adderTree_CLSA_PRE_WIDTH: Int
+          accuracy: Int = 0,
+          adderTree_CLSA_PRE_WIDTH: Int = 5
 ){
   val addResSize = fpConfig.fullMantSize + accuracy + 1+4
 }
@@ -211,12 +211,7 @@ io.o.Y := pipe_3.stageOut.Y
 
 object FloatingAdderTree_Verilog {
   def main(args: Array[String]): Unit = {
-    val fpatConfig = FPATConfig(
-                      fpConfig = FPConfig(8, 23), 
-                      size     = 16,
-                      accuracy = 0,
-                      adderTree_CLSA_PRE_WIDTH = 5
-                      )
+    val fpatConfig = FPATConfig(FPConfig.FP32(), 16)
 
     val path = "simWorkspace/FloatingAdderTree/rtl"
     java.nio.file.Files.createDirectories(java.nio.file.Paths.get(path))

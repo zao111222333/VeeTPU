@@ -1,4 +1,0 @@
-RAM_ORIGIN = 0x80F80000;
-RAM_LENGTH = 64K;
-
-INCLUDE default_ram.ld

@@ -2,87 +2,99 @@ package veetpu.array
 
 import spinal.core._
 import spinal.lib._
-// sbt "runMain veetpu.array.Systolic_Verilog"
+// mill runMain veetpu.array.SystolicReg_Verilog
 // import spinal.lib.experimental.math._
-import veetpu.ip._
-import veetpu.fp._
-// import build
-class Vector(vecSize: Int=16) extends Component{
-  val fpatConfig = floatingaddertree.FPATConfig(
-                      fpConfig = FPConfig.FP64, 
-                      size     = vecSize,
-                      accuracy = 0,
-                      adderTree_CLSA_PRE_WIDTH = 5
-                      )
-  import fpatConfig._
+import ip._
+import fp._
+import veetpu.array.pe.PE_16in_top
+
+class Systolic(systolicConfig: SystolicConfig) extends Component{
+  import systolicConfig._
   val ctl = new Bundle{
-      val mode_sel     = in Bits(2 bits)
+    val modeSel     = in Vec(Bits(2 bits),yVectorLength)
+    val modeOut     = out Vec(Bits(2 bits),yVectorLength)
+    val wAddr       = in UInt(log2Up(yVectorLength) bits)
+    val wEn         = in Bool()
   }
   val io = new Bundle{
     val i = new Bundle{
-      val input = in Vec(Bits(256 bits),vecSize)
-      val weight = in Vec(Bits(256 bits),vecSize)
+      val dataA = in Vec(Bits(dataAWidth bits), xVectorLength)
+      val dataB = in Vec(Bits(dataBWidth bits), xVectorLength)
     }
     val o = new Bundle{
-      val vecOut = out (FP(fpConfig))
-      // val mode_sel = out Vec(Bits(2 bits),vecNum)
+      val result = out Vec(Bits(outWidth bits), yVectorLength)
     }
   }
-  val peVec = Array.tabulate(vecSize)((s) => {new pe.PE_16in_top})
-  val fpAddTree = new floatingaddertree.MultiFloatingAdderTree(fpatConfig)
-  Array.tabulate(vecSize)((s) => {
-    peVec(s).io.mode_sel := ctl.mode_sel
-    peVec(s).io.A := io.i.input(s)
-    peVec(s).io.B := io.i.weight(s)
-    fpAddTree.io.i.X(s) := FP(fpConfig, peVec(s).io.result)
+  val bufferReg = new SystolicReg(systolicConfig)
+  bufferReg.io.i.assignAllByName(io.i)
+  bufferReg.ctl.wAddr := ctl.wAddr
+  bufferReg.ctl.wEn   := ctl.wEn
+  val peVec = Array.tabulate(xVectorLength,yVectorLength)((xl,yl) => {
+    def gen_pe:PE_16in_top = {
+      val pe = new PE_16in_top
+      pe.io.A := bufferReg.io.o.dataA(xl)(yl)
+      pe.io.B := bufferReg.io.o.dataB(xl)(yl)
+      pe.io.mode_sel := ctl.modeSel(yl)
+      pe
+    }
+    gen_pe
   })
-  fpAddTree.ctl.mode_sel := peVec(0).io.mode_out
-  io.o.vecOut := fpAddTree.io.o.Y
+  Array.tabulate(yVectorLength)((yl) => {
+    io.o.result(yl) := peVec(0)(yl).io.result
+    ctl.modeOut(yl) := peVec(0)(yl).io.mode_out
+  })
 }
 
-class Systolic(vecNum: Int=16, vecSize: Int=16) extends Component{
+class Systolic_TOP(systolicConfig: SystolicConfig) extends Component{
+  import systolicConfig._
   val ctl = new Bundle{
-      val mode_sel     = in Vec(Bits(2 bits),vecNum)
-      // val pingpong_sel = in Vec(Bool,vecSize)
-      val w_addr       = in UInt(log2Up(vecNum) bits)
-      val w_en         = in Bool
+      val modeSel     = in Bits(2 bits)
+      // val wAddr       = in UInt(log2Up(xVectorLength) bits)
+      // val wEn         = in Bool()
   }
   val io = new Bundle{
     val i = new Bundle{
-      val input  = in Vec(Bits(256 bits),vecSize)
-      val weight = in Vec(Bits(256 bits),vecSize)
+      val dataA = in Vec(Bits(dataAWidth bits), xVectorLength)
+      val dataB = in Vec(Bits(dataBWidth bits), xVectorLength)
     }
     val o = new Bundle{
-      val arrayOut = out Vec(FP(FPConfig.FP64),vecNum)
-      // val mode_sel = out Vec(Bits(2 bits),vecNum)
+      val result = out Vec(Bits(outWidth bits), yVectorLength)
     }
   }
-  val weightRegs = Array.tabulate(vecNum,vecSize)((n,s) => { RegNextWhen(io.i.weight(s), ctl.w_addr===U(n) & ctl.w_en) })
-  val inputRegs  = Array.tabulate(vecNum,vecSize)((n,s) => { (if (n==0) Bits(256 bits) else Reg(Bits(256 bits))) })
-  Array.tabulate(vecNum,vecSize)((n,s) => {
-    inputRegs(n)(s) := (if (n==0) io.i.input(n) else inputRegs(n-1)(n) )
+  val systolic = new Systolic(systolicConfig)
+  val regModeSel = Array.tabulate(yVectorLength)((yl) => { if (yl==0) Bits(2 bits) else Reg(Bits(2 bits)) })
+  Array.tabulate(yVectorLength)((yl) => {
+    regModeSel(yl) := (if (yl==0) ctl.modeSel else regModeSel(yl-1) )
+    systolic.ctl.modeSel(yl) := regModeSel(yl)
   })
-  val vecArray = Array.tabulate(vecNum)((n) => {new Vector(vecSize)})
-  Array.tabulate(vecNum,vecSize)((n,s) => {
-    vecArray(n).io.i.input(s) := inputRegs(n)(s)
-    vecArray(n).io.i.weight(s):= weightRegs(n)(s)
-  })
-  Array.tabulate(vecNum)((n) => {
-    vecArray(n).ctl.mode_sel := ctl.mode_sel(n)
-    io.o.arrayOut(n) := vecArray(n).io.o.vecOut
-  })
+  val regWAddr = Reg(UInt(log2Up(yVectorLength) bits)) init(0)
+  regWAddr := (if (regWAddr == (yVectorLength-1)) U(0) else (regWAddr+1) )
+  systolic.ctl.wAddr := regWAddr
+  systolic.ctl.wEn   := True
+  systolic.io.i.assignAllByName(io.i)
+  io.o.assignAllByName(systolic.io.o)
 }
-
 object Systolic_Verilog {
   def main(args: Array[String]): Unit = {
-    val path = "simWorkspace/Systolic/rtl"
+    val systolicConfig = SystolicConfig(
+          xVectorLength =1,
+          yVectorLength =4,
+          dataAWidth    =256,
+          dataBWidth    =256,
+          outWidth      =64,
+          addPipeLength =1
+                      )
+    val path = "simWorkspace/Systolic"+systolicConfig+"/rtl"
     java.nio.file.Files.createDirectories(java.nio.file.Paths.get(path))
     val report = SpinalConfig(
       mode=Verilog,
       targetDirectory=path,
-      oneFilePerComponent=true
+      oneFilePerComponent=true,
+      defaultConfigForClockDomains = ClockDomainConfig( resetKind = ASYNC,
+                                                        clockEdge = RISING,
+                                                        resetActiveLevel = LOW),
       // netlistFileName="Systolic_16.v"
-    ).generate(new Systolic())
+    ).generate(new Systolic_TOP(systolicConfig))
     report.mergeRTLSource(path+"/mergeRTL") // Merge all rtl sources into mergeRTL.vhd and mergeRTL.v files
   }
 }

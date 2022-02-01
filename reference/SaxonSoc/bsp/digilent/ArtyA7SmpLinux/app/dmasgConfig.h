@@ -1,7 +1,0 @@
-#pragma once
-
-#include "bsp.h"
-
-#define DMASG_BASE SYSTEM_DMA_CTRL
-#define DMASG_CHANNEL 0
-#define PLIC_DMASG_CHANNEL SYSTEM_PLIC_SYSTEM_DMA_INTERRUPT

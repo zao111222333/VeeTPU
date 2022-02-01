@@ -1,0 +1,414 @@
+=== $paramod\add_tree_16in\WIDTH=53 ===
+
+   Number of wires:                 46
+   Number of wire bits:           2759
+   Number of public wires:          46
+   Number of public wire bits:    2759
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 17
+     $and                            1
+     $mux                            8
+     $paramod\csla\WIDTH=96\PRE_WIDTH=9\PRE_UNIT_NUM=10\RCA_WIDTH=6      1
+     $paramod\pe_CSA4_2\Width=55      4
+     $paramod\pe_CSA4_2\Width=56      2
+     $paramod\pe_CSA4_2\Width=83      1
+
+=== $paramod\csla\WIDTH=26\PRE_WIDTH=5\PRE_UNIT_NUM=5\RCA_WIDTH=1 ===
+
+   Number of wires:                 20
+   Number of wire bits:            196
+   Number of public wires:          20
+   Number of public wire bits:     196
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 11
+     $mux                            5
+     $paramod\pe_cpa\WIDTH=1         1
+     $paramod\pe_csla_unit\WIDTH=5      5
+
+=== $paramod\csla\WIDTH=96\PRE_WIDTH=9\PRE_UNIT_NUM=10\RCA_WIDTH=6 ===
+
+   Number of wires:                 35
+   Number of wire bits:            686
+   Number of public wires:          35
+   Number of public wire bits:     686
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 21
+     $mux                           10
+     $paramod\pe_cpa\WIDTH=6         1
+     $paramod\pe_csla_unit\WIDTH=9     10
+
+=== $paramod\exp_compare_16in\WIDTH=10 ===
+
+   Number of wires:                 62
+   Number of wire bits:            485
+   Number of public wires:          47
+   Number of public wire bits:     470
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 46
+     $gt                            15
+     $mux                           15
+     $sub                           16
+
+=== $paramod\lza\WIDTH=107 ===
+
+   Number of wires:               1180
+   Number of wire bits:           2153
+   Number of public wires:           8
+   Number of public wire bits:     650
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               1289
+     $and                          633
+     $logic_not                      7
+     $mux                           14
+     $not                          319
+     $or                           315
+     $xor                            1
+
+=== $paramod\mul_array\WIDTH=13 ===
+
+   Number of wires:                 48
+   Number of wire bits:            832
+   Number of public wires:          48
+   Number of public wire bits:     832
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 16
+     pe_booth_13w                   16
+
+=== $paramod\pe_CSA4_2\Width=55 ===
+
+   Number of wires:                 11
+   Number of wire bits:            389
+   Number of public wires:          10
+   Number of public wire bits:     388
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 60
+     $and                            1
+     $mux                            1
+     $not                            1
+     $xor                            3
+     CSA4_2_UNIT                    54
+
+=== $paramod\pe_CSA4_2\Width=56 ===
+
+   Number of wires:                 11
+   Number of wire bits:            396
+   Number of public wires:          10
+   Number of public wire bits:     395
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 61
+     $and                            1
+     $mux                            1
+     $not                            1
+     $xor                            3
+     CSA4_2_UNIT                    55
+
+=== $paramod\pe_CSA4_2\Width=83 ===
+
+   Number of wires:                 11
+   Number of wire bits:            585
+   Number of public wires:          10
+   Number of public wire bits:     584
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 88
+     $and                            1
+     $mux                            1
+     $not                            1
+     $xor                            3
+     CSA4_2_UNIT                    82
+
+=== $paramod\pe_alignment\WIDTH=52\EXP_W=10 ===
+
+   Number of wires:                 48
+   Number of wire bits:           1856
+   Number of public wires:          48
+   Number of public wire bits:    1856
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 16
+     $sshr                          16
+
+=== $paramod\pe_cpa\WIDTH=1 ===
+
+   Number of wires:                  5
+   Number of wire bits:              6
+   Number of public wires:           5
+   Number of public wire bits:       6
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  1
+     pe_Hadd                         1
+
+=== $paramod\pe_cpa\WIDTH=6 ===
+
+   Number of wires:                  5
+   Number of wire bits:             31
+   Number of public wires:           5
+   Number of public wire bits:      31
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  6
+     pe_Fadd                         5
+     pe_Hadd                         1
+
+=== $paramod\pe_csla_unit\WIDTH=5 ===
+
+   Number of wires:                 13
+   Number of wire bits:             51
+   Number of public wires:           9
+   Number of public wire bits:      47
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 24
+     $and                            1
+     $mux                           16
+     $not                            5
+     $or                             1
+     $xor                            1
+
+=== $paramod\pe_csla_unit\WIDTH=9 ===
+
+   Number of wires:                 17
+   Number of wire bits:             91
+   Number of public wires:           9
+   Number of public wire bits:      83
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 44
+     $and                            1
+     $mux                           32
+     $not                            9
+     $or                             1
+     $xor                            1
+
+=== $paramod\pe_round\WIDTH=106 ===
+
+   Number of wires:                 30
+   Number of wire bits:            856
+   Number of public wires:          10
+   Number of public wire bits:     428
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 25
+     $add                            6
+     $and                            3
+     $eq                             2
+     $mux                            9
+     $or                             3
+     $pmux                           2
+
+=== CSA4_2_UNIT ===
+
+   Number of wires:                 11
+   Number of wire bits:             11
+   Number of public wires:          11
+   Number of public wire bits:      11
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  6
+     $mux                            2
+     $xor                            4
+
+=== PE_16in_top ===
+
+   Number of wires:                110
+   Number of wire bits:           2121
+   Number of public wires:         110
+   Number of public wire bits:    2121
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  4
+     input_processing                1
+     pip1_processing                 1
+     pip2_processing                 1
+     pip3_processing                 1
+
+=== input_processing ===
+
+   Number of wires:                280
+   Number of wire bits:           2990
+   Number of public wires:         107
+   Number of public wire bits:    1209
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                326
+     $add                           29
+     $adff                           1
+     $dff                           53
+     $eq                             2
+     $logic_not                     43
+     $mux                           52
+     $or                            21
+     $pmux                          66
+     $reduce_or                     43
+     $xor                           16
+
+=== pe_Fadd ===
+
+   Number of wires:                  8
+   Number of wire bits:              8
+   Number of public wires:           8
+   Number of public wire bits:       8
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  5
+     $and                            2
+     $or                             1
+     $xor                            2
+
+=== pe_Hadd ===
+
+   Number of wires:                  4
+   Number of wire bits:              4
+   Number of public wires:           4
+   Number of public wire bits:       4
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                  2
+     $and                            1
+     $xor                            1
+
+=== pip1_processing ===
+
+   Number of wires:                176
+   Number of wire bits:           3184
+   Number of public wires:         144
+   Number of public wire bits:    2352
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 89
+     $adff                           1
+     $dff                           38
+     $mux                           16
+     $not                           16
+     $paramod\csla\WIDTH=26\PRE_WIDTH=5\PRE_UNIT_NUM=5\RCA_WIDTH=1     16
+     $paramod\exp_compare_16in\WIDTH=10      1
+     $paramod\mul_array\WIDTH=13      1
+
+=== pip2_processing ===
+
+   Number of wires:                 91
+   Number of wire bits:           3220
+   Number of public wires:          88
+   Number of public wire bits:    3111
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 16
+     $adff                           1
+     $dff                            7
+     $eq                             1
+     $mux                            4
+     $paramod\add_tree_16in\WIDTH=53      1
+     $paramod\lza\WIDTH=107          1
+     $paramod\pe_alignment\WIDTH=52\EXP_W=10      1
+
+=== pip3_processing ===
+
+   Number of wires:                 64
+   Number of wire bits:           1254
+   Number of public wires:          24
+   Number of public wire bits:     673
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:                 49
+     $add                            5
+     $adff                           2
+     $and                            4
+     $dlatch                         2
+     $eq                             1
+     $gt                             5
+     $logic_not                      5
+     $mux                           12
+     $not                            5
+     $paramod\pe_round\WIDTH=106      1
+     $pmux                           1
+     $shl                            1
+     $sub                            5
+
+=== design hierarchy ===
+
+   PE_16in_top                       1
+     input_processing                1
+     pip1_processing                 1
+       $paramod\csla\WIDTH=26\PRE_WIDTH=5\PRE_UNIT_NUM=5\RCA_WIDTH=1     16
+         $paramod\pe_cpa\WIDTH=1      1
+           pe_Hadd                   1
+         $paramod\pe_csla_unit\WIDTH=5      5
+       $paramod\exp_compare_16in\WIDTH=10      1
+       $paramod\mul_array\WIDTH=13      1
+     pip2_processing                 1
+       $paramod\add_tree_16in\WIDTH=53      1
+         $paramod\csla\WIDTH=96\PRE_WIDTH=9\PRE_UNIT_NUM=10\RCA_WIDTH=6      1
+           $paramod\pe_cpa\WIDTH=6      1
+             pe_Fadd                 5
+             pe_Hadd                 1
+           $paramod\pe_csla_unit\WIDTH=9     10
+         $paramod\pe_CSA4_2\Width=55      4
+           CSA4_2_UNIT              54
+         $paramod\pe_CSA4_2\Width=56      2
+           CSA4_2_UNIT              55
+         $paramod\pe_CSA4_2\Width=83      1
+           CSA4_2_UNIT              82
+       $paramod\lza\WIDTH=107        1
+       $paramod\pe_alignment\WIDTH=52\EXP_W=10      1
+     pip3_processing                 1
+       $paramod\pe_round\WIDTH=106      1
+
+   Number of wires:               8458
+   Number of wire bits:          38178
+   Number of public wires:        6596
+   Number of public wire bits:   32522
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               6858
+     $add                           40
+     $adff                           5
+     $and                          765
+     $dff                           98
+     $dlatch                         2
+     $eq                             6
+     $gt                            20
+     $logic_not                     55
+     $mux                         2643
+     $not                          837
+     $or                           434
+     $pmux                          69
+     $reduce_or                     43
+     $shl                            1
+     $sshr                          16
+     $sub                           21
+     $xor                         1787
+     pe_booth_13w                   16
+

@@ -1,35 +1,38 @@
 *.class
 *.log
 *.bak
-
+.vscode
 # sbt specific
-.cache/
-.history/
-.lib/
-dist/*
-target
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
+# .cache/
+# .history/
+# .lib/
+# dist/*
+# target
+# lib_managed/
+# src_managed/
+# project/boot/
+# project/plugins/project/
 
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
 
-.idea
+# mill
 out
+.bloop
+# Metals
+.metals
 
 # Eclipse
-bin/
-.classpath
-.project
-.settings
-.cache-main
+# bin/
+# .classpath
+# .project
+# .settings
+# .cache-main
 
 #User
-/*.vhd
-/*.v
+# /*.vhd
+# /*.v
 *.cf
 *.json
 *.vcd
@@ -39,9 +42,3 @@ bin/
 simWorkspace/
 tmp/
 null
-*.log
-*.vcd
-*.json
-.vscode
-.metals
-Synthesis/

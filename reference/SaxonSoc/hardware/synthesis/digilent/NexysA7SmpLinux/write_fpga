@@ -1,3 +1,0 @@
-#!/bin/sh
-cd ./build
-vivado -mode batch -source ../vivado_script.tcl -tclargs "--program"

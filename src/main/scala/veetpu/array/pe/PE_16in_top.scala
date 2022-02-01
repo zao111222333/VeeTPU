@@ -7,8 +7,8 @@ import spinal.lib._
 //class CSLA(dataWidth:Int = 29, PRE_WIDTH:Int = 6, PRE_UNIT_NUM:Int = 4,RCA_WIDTH:Int = 5) extends BlackBox{
 class PE_16in_top extends BlackBox{
   val io=new Bundle{
-    val clk  = in Bool
-    val rstn = in Bool
+    val clk  = in Bool()
+    val rstn = in Bool()
     val mode_sel = in Bits(2 bits)
     val A  = in Bits(256 bits)
     val B  = in Bits(256 bits)
@@ -16,9 +16,8 @@ class PE_16in_top extends BlackBox{
     val mode_out = out Bits(2  bits)
   }
   noIoPrefix()
-  mapClockDomain(clock = io.clk,reset = io.rstn)
+  mapClockDomain(clock=io.clk, reset=io.rstn, resetActiveLevel=LOW)
   val Path:String = "./src/main/scala/veetpu/array/pe/"
-  
   addRTLPath(Path+"pe_mergeRTL.v")
 }
 
