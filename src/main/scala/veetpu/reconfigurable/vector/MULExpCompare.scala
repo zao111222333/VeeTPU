@@ -49,7 +49,6 @@ class MULExpCompareBasic() extends Component{
   io.o.Mode1(0) := max(1) @@ max(0)
 }
 
-
 class MULExpCompareDiff() extends Component{
   val ctl = new Bundle{
     val i = new Bundle{

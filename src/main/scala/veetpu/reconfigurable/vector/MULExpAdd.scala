@@ -76,11 +76,11 @@ class MULExpAdd() extends Component{
   })
   Array.tabulate(16)((m) => {
     io.o.BF16(m) := ADDs(m)
-    io.o.FP16(m) := ADDs(m).resized
+    io.o.FP16(m) := io.o.BF16(m).resized
   })
   Array.tabulate(4)((m) => {
     io.o.FP32(m) := ((ADDs(2*m+1).resize(5)@@U"0000")+^ADDs(2*m).resize(5)).resized
-    io.o.TF32(m) := ((ADDs(2*m+1).resize(5)@@U"0000")+^ADDs(2*m).resize(5)).resized
+    io.o.TF32(m) := io.o.FP32(m)
   })
   io.o.FP64(0) := ((ADDs(1).resize(5)@@U"0000000")+^ADDs(0).resize(8)).resized
 }
@@ -189,6 +189,7 @@ class MULExpAdd_Verif() extends Component{
 
 import spinal.sim._
 import spinal.core.sim._
+
 
 object MULExpAdd_Sim {
 
