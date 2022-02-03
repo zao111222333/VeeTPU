@@ -82,6 +82,14 @@ class MULMulti() extends Component{
       val TF32 = out Vec(UInt(11*2   bits),  4)
       val FP64 = out Vec(UInt(53*2   bits),  1)
     }
+    val StageOut = new Bundle{
+      val INT8 = out Vec(SInt( 8*2+1 bits), 16)
+      val BF16 = out Vec(UInt( 8*2   bits), 16)
+      val FP16 = out Vec(UInt(11*2   bits), 16)
+      val FP32 = out Vec(UInt(24*2   bits),  4)
+      val TF32 = out Vec(UInt(11*2   bits),  4)
+      val FP64 = out Vec(UInt(53*2   bits),  1)
+    }
   }
   noIoPrefix()
 
@@ -119,14 +127,55 @@ class MULMulti() extends Component{
                                                                   (io.i.FP64(1)(0)((n1*2+n2)*13 to (n1*2+n2+1)*13-1))
                                                                 ) | 
                                                                 //  Defalut
-                                                                io.i.FP16(p)(k).resized
+                                                                U"0".resized
     ))}
+  })
+  val StageReg = Reg(Vec(UInt(11*2 bits), 16))
+  Array.tabulate(2,2,2,2)((m1,n1,m2,n2) => {
+    val m = 2*m1+m2
+    val n = 2*n1+n2
+    val k = 4*m+n
+    StageReg(k) :=        ctl.i.mode.isINT8 ? 
+                                //  INT8
+                                io.o.INT8(k).asUInt.resize(22)|
+     ((ctl.i.mode.isFP16|ctl.i.mode.isBF16) ? 
+                                //  FP16 or BF16
+                                io.o.FP16(k).resize(22) | 
+     ((ctl.i.mode.isFP32|ctl.i.mode.isTF32) ? 
+                                //  FP32
+                                // val FP32 = out Vec(UInt(48   bits),  4)
+                                (n match {
+                                  case 0 => io.o.FP32(m)( 0 to 21)
+                                  case 1 => io.o.FP32(m)(22 to 43)
+                                  case 2 => io.o.FP32(m)(44 to 47).resize(22)
+                                  case _ => U"0".resize(22)
+                                })|
+                       ((ctl.i.mode.isFP64) ?
+                                //  FP64
+                                // val FP64 = out Vec(UInt(106   bits),  1)
+                                (k match {
+                                  case 0 => io.o.FP64(0)( 0 to 21)
+                                  case 1 => io.o.FP64(0)(22 to 43)
+                                  case 2 => io.o.FP64(0)(44 to 65)
+                                  case 3 => io.o.FP64(0)(66 to 87)
+                                  case 4 => io.o.FP64(0)(88 to 105).resize(22)
+                                  case _ => U"0".resize(22)
+                                })|
+                                //  Defalut
+                                U"0".resize(22)
+      )))
   })
   Array.tabulate(4,4)((m,n) => {
     val k = 4*m+n
     io.o.INT8(k) := MULs(m)(n).io.o.ModeSINT
     io.o.BF16(k) := MULs(m)(n).io.o.ModeUINT.resized
     io.o.FP16(k) := MULs(m)(n).io.o.ModeUINT.resized
+  })
+  Array.tabulate(4,4)((m,n) => {
+    val k = 4*m+n
+    io.StageOut.INT8(k) := StageReg(k).asSInt.resized
+    io.StageOut.BF16(k) := StageReg(k).resized
+    io.StageOut.FP16(k) := StageReg(k).resized
   })
   val ADDs = Array.tabulate(2,2)((m1,n1) => {
     (MULs(m1*2)(n1*2).io.o.ModeUINT
@@ -139,13 +188,18 @@ class MULMulti() extends Component{
     io.o.FP32(2*m1+n1) := ADDs(m1)(n1).resized
     io.o.TF32(2*m1+n1) := ADDs(m1)(n1).resized
   })
+  Array.tabulate(4)((m) => {
+    io.StageOut.FP32(m) := (StageReg(4*m+3) @@ StageReg(4*m+2) @@ StageReg(4*m+1) @@ StageReg(4*m)).resized
+    io.StageOut.TF32(m) := (StageReg(4*m+3) @@ StageReg(4*m+2) @@ StageReg(4*m+1) @@ StageReg(4*m)).resized
+  })
   io.o.FP64(0) := 
-    (ADDs(0)(0) 
+     (ADDs(0)(0) 
   +^ (ADDs(0)(1) @@ U(0,26 bits))
   +^ (ADDs(1)(0) @@ U(0,26 bits))
   +^ (ADDs(1)(1) @@ U(0,52 bits))
   +^ (((io.i.FP64(0)(0).resize(52) * io.i.FP64(1)(0)(52).asUInt)+^(io.i.FP64(1)(0) * io.i.FP64(0)(0)(52).asUInt)) @@ U(0,52 bits))
   ).resized
+  io.StageOut.FP64(0) := (StageReg(4) @@ StageReg(3) @@ StageReg(2) @@ StageReg(1) @@ StageReg(0)).resized
 }
 object MULMulti_Verilog {
   def main(args: Array[String]): Unit = {
@@ -195,11 +249,20 @@ class MULMulti_Verif() extends Component{
       val TF32 = out Vec(UInt(11*2   bits),  4)
       val FP64 = out Vec(UInt(53*2   bits),  1)
     }
+    val StageOut = new Bundle{
+      val INT8 = out Vec(SInt( 8*2+1 bits), 16)
+      val BF16 = out Vec(UInt( 8*2   bits), 16)
+      val FP16 = out Vec(UInt(11*2   bits), 16)
+      val FP32 = out Vec(UInt(24*2   bits),  4)
+      val TF32 = out Vec(UInt(11*2   bits),  4)
+      val FP64 = out Vec(UInt(53*2   bits),  1)
+    }
   }
   val dut = new MULMulti()
   dut.io.i.assignAllByName(io.i)
   dut.ctl.i.assignAllByName(ctl.i)
   io.o.assignAllByName(dut.io.o)
+  io.StageOut.assignAllByName(dut.io.StageOut)
   val verify = new Bundle{
     val o = new Bundle{
       // SINT_A1[8]*SINT_B1[8] + SINT_A2[8]*SINT_B2[8] = SINT_ModeSINT[17]
@@ -210,6 +273,14 @@ class MULMulti_Verif() extends Component{
       val TF32 = out Vec(UInt(11*2   bits),  4)
       val FP64 = out Vec(UInt(53*2   bits),  1)
     }
+    val StageOut = Reg(new Bundle{
+      val INT8 = out Vec(SInt( 8*2+1 bits), 16)
+      val BF16 = out Vec(UInt( 8*2   bits), 16)
+      val FP16 = out Vec(UInt(11*2   bits), 16)
+      val FP32 = out Vec(UInt(24*2   bits),  4)
+      val TF32 = out Vec(UInt(11*2   bits),  4)
+      val FP64 = out Vec(UInt(53*2   bits),  1)
+    })
     val equal = new Bundle{
       val INT8 = out Bool()
       val BF16 = out Bool()
@@ -231,12 +302,13 @@ class MULMulti_Verif() extends Component{
     verify.o.TF32(n) := io.i.TF32(0)(n)*io.i.TF32(1)(n)
   })
   verify.o.FP64(0) := io.i.FP64(0)(0)*io.i.FP64(1)(0)
-  verify.equal.INT8 := io.o.INT8===verify.o.INT8
-  verify.equal.BF16 := io.o.BF16===verify.o.BF16
-  verify.equal.FP16 := io.o.FP16===verify.o.FP16
-  verify.equal.FP32 := io.o.FP32===verify.o.FP32
-  verify.equal.TF32 := io.o.TF32===verify.o.TF32
-  verify.equal.FP64 := io.o.FP64===verify.o.FP64
+  verify.StageOut.assignAllByName(io.StageOut)
+  verify.equal.INT8 := io.o.INT8===verify.o.INT8 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.BF16 := io.o.BF16===verify.o.BF16 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.FP16 := io.o.FP16===verify.o.FP16 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.FP32 := io.o.FP32===verify.o.FP32 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.TF32 := io.o.TF32===verify.o.TF32 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.FP64 := io.o.FP64===verify.o.FP64 && io.StageOut.INT8===verify.StageOut.INT8
   when(ctl.i.mode.isINT8) {
     verify.EQUAL := verify.equal.INT8
   }.elsewhen(ctl.i.mode.isBF16) {
@@ -264,7 +336,6 @@ class MULMulti_Verif() extends Component{
 
 import spinal.sim._
 import spinal.core.sim._
-
 
 
 object MULMulti_Sim {

@@ -29,13 +29,13 @@ object ModeConfig{
   // 乘法是INT8, 加法是INT32
   // INT8 ADD
   // [16x16]_int32 + [16x16]_int32 = [16x16]_int32
-  def ADD_INT8 = ModeConfig(instr="0001_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4, 0+2), outShape=Array(2,1))
+  def ADD_INT8 = ModeConfig(instr="0001_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4, 0+2), outShape=Array(4,1))
   // INT8 MUL
   // [16x32]_int8  x [32x16]_int8  = [16x16]_int32
-  def MUL_INT8 = ModeConfig(instr="0010_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4,32+0), outShape=Array(2,1))
+  def MUL_INT8 = ModeConfig(instr="0010_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4,32+0), outShape=Array(4,1))
   // INT8 MAC
   // [16x32]_int8  x [32x16]_int8  + [16x16]_int32 = [16x16]_int32
-  def MAC_INT8 = ModeConfig(instr="0011_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4,32+1), outShape=Array(2,1))
+  def MAC_INT8 = ModeConfig(instr="0011_0000", delay=2, inType=INT8, outType=INT32,inShape=Array(4,32+1), outShape=Array(4,1))
   // Floating ADD
   def ADD_FP16 = ModeConfig(instr="0001_1000", delay=2, inType=FP16, outType=FP16, inShape=Array(4, 0+2), outShape=Array(4,1))
   def ADD_FP32 = ModeConfig(instr="0001_1001", delay=2, inType=FP32, outType=FP32, inShape=Array(2, 0+2), outShape=Array(2,1))
