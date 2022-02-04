@@ -302,13 +302,13 @@ class MULMulti_Verif() extends Component{
     verify.o.TF32(n) := io.i.TF32(0)(n)*io.i.TF32(1)(n)
   })
   verify.o.FP64(0) := io.i.FP64(0)(0)*io.i.FP64(1)(0)
-  verify.StageOut.assignAllByName(io.StageOut)
+  verify.StageOut.assignAllByName(io.o)
   verify.equal.INT8 := io.o.INT8===verify.o.INT8 && io.StageOut.INT8===verify.StageOut.INT8
-  verify.equal.BF16 := io.o.BF16===verify.o.BF16 && io.StageOut.INT8===verify.StageOut.INT8
-  verify.equal.FP16 := io.o.FP16===verify.o.FP16 && io.StageOut.INT8===verify.StageOut.INT8
-  verify.equal.FP32 := io.o.FP32===verify.o.FP32 && io.StageOut.INT8===verify.StageOut.INT8
-  verify.equal.TF32 := io.o.TF32===verify.o.TF32 && io.StageOut.INT8===verify.StageOut.INT8
-  verify.equal.FP64 := io.o.FP64===verify.o.FP64 && io.StageOut.INT8===verify.StageOut.INT8
+  verify.equal.BF16 := io.o.BF16===verify.o.BF16 && io.StageOut.BF16===verify.StageOut.BF16
+  verify.equal.FP16 := io.o.FP16===verify.o.FP16 && io.StageOut.FP16===verify.StageOut.FP16
+  verify.equal.FP32 := io.o.FP32===verify.o.FP32 && io.StageOut.FP32===verify.StageOut.FP32
+  verify.equal.TF32 := io.o.TF32===verify.o.TF32 && io.StageOut.TF32===verify.StageOut.TF32
+  verify.equal.FP64 := io.o.FP64===verify.o.FP64 && io.StageOut.FP64===verify.StageOut.FP64
   when(ctl.i.mode.isINT8) {
     verify.EQUAL := verify.equal.INT8
   }.elsewhen(ctl.i.mode.isBF16) {
@@ -449,10 +449,10 @@ object MULMulti_Sim {
       println(Console.GREEN+"** FINISHED ** "+name+" with "+times+" times")
     }
 
-    simINT8(times=100)
-    simFP16(times=100)
-    simFP32(times=100)
-    simFP64(times=100)
+    simINT8(times=10)
+    simFP16(times=10)
+    simFP32(times=10)
+    simFP64(times=10)
 
   }
 }

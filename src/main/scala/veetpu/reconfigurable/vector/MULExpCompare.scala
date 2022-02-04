@@ -142,6 +142,38 @@ class MULExpCompare() extends Component{
         }
       }
     }
+    val StageOut = new Bundle{
+      val max = new Bundle{
+        val BF16 = out Vec(UInt( 7+1 bits), 4)
+        val FP16 = out Vec(UInt( 5+1 bits), 4)
+        val FP32 = out Vec(UInt( 8+1 bits), 2)
+        val TF32 = out Vec(UInt( 8+1 bits), 2)
+        val FP64 = out Vec(UInt(11+1 bits), 1)
+      }
+      val diff = new Bundle{
+        val mul = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 16), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 16), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits),  4), 1)
+        }
+        val mac = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+        val add = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+      }
+    }
   }
   val max = new Area{
     val COMPAREs_0 = Array.tabulate(4,4)((m,n) => {
@@ -434,7 +466,132 @@ class MULExpCompare() extends Component{
       gen
     })
   }
+  val StageOut = new Area{
+    val max = new Area{
+      val StageReg = Reg(Vec(UInt(8 bits), 4))
+      Array.tabulate(4)((m) => {
+        StageReg(m) := ((ctl.i.mode.isFP16|ctl.i.mode.isBF16) ? 
+                                    //  FP16 or BF16
+                                    io.o.max.BF16(m) | 
+         ((ctl.i.mode.isFP32|ctl.i.mode.isTF32) ? 
+                                    //  FP32
+                                    // val FP32 = out Vec(UInt(48   bits),  4)
+                                    (m match {
+                                      case 0 => io.o.max.FP32(0)(0 to 7)
+                                      case 1 => io.o.max.FP32(0)(8 to 8).resize(8)
+                                      case 2 => io.o.max.FP32(1)(0 to 7)
+                                      case 3 => io.o.max.FP32(1)(8 to 8).resize(8)
+                                    })|
+                           ((ctl.i.mode.isFP64) ?
+                                    //  FP64
+                                    // val FP64 = out Vec(UInt(106   bits),  1)
+                                    (m match {
+                                      case 0 => io.o.max.FP64(0)(0 to  7)
+                                      case 1 => io.o.max.FP64(0)(8 to 11).resize(8)
+                                      case _ => U"0".resize(8)
+                                    })|
+                                    //  Defalut
+                                    U"0".resize(8)
+          )))
+      })
+      Array.tabulate(4)((m) => {
+        io.StageOut.max.BF16(m) := StageReg(m)
+        io.StageOut.max.FP16(m) := StageReg(m).resized
+      })
+      io.StageOut.max.FP32(0) := (StageReg(1) @@ StageReg(0)).resized
+      io.StageOut.max.FP32(1) := (StageReg(3) @@ StageReg(2)).resized
+      io.StageOut.max.TF32(0) := (StageReg(1) @@ StageReg(0)).resized
+      io.StageOut.max.TF32(1) := (StageReg(3) @@ StageReg(2)).resized
+      io.StageOut.max.FP64(0) := (StageReg(1) @@ StageReg(0)).resized
+    }
+    val diff = new Area{
+      val mul = new Area{
+        val StageReg = Reg(Vec(Vec(UInt(8*2 bits), 8), 4))
+        Array.tabulate(4,8)((m,n) => {
+          StageReg(m)(n) := ((ctl.i.mode.isFP16|ctl.i.mode.isBF16) ? 
+                                //  FP16 or BF16
+                                (io.o.diff.mul.BF16(m)(2*n+1) @@ io.o.diff.mul.BF16(m)(2*n)) | 
+                            ((ctl.i.mode.isFP32|ctl.i.mode.isTF32) ? 
+                                //  FP32
+                                // val FP32 = out Vec(UInt(48   bits),  4)
+                                (if(m<=1){
+                                  io.o.diff.mul.FP32(m)(n).resized
+                                }else{
+                                  U"0".resize(16)
+                                })|
+                            ((ctl.i.mode.isFP64) ?
+                                //  FP64
+                                // val FP64 = out Vec(UInt(106   bits),  1)
+                                (if(m==0&&n<=3){
+                                  io.o.diff.mul.FP64(m)(n).resized
+                                }else{
+                                  U"0".resize(16)
+                                })|
+                                //  Defalut
+                                U"0".resize(16)
+          )))
+          io.StageOut.diff.mul.BF16(m)(2*n  ) := StageReg(m)(n)(0 to  7)
+          io.StageOut.diff.mul.BF16(m)(2*n+1) := StageReg(m)(n)(8 to 15)
+          io.StageOut.diff.mul.FP16(m)(2*n  ) := StageReg(m)(n)( 0 to 7).resized
+          io.StageOut.diff.mul.FP16(m)(2*n+1) := StageReg(m)(n)(8 to 15).resized
+          if(m<=1){
+            io.StageOut.diff.mul.FP32(m)(n) := StageReg(m)(n).resized
+            io.StageOut.diff.mul.TF32(m)(n) := StageReg(m)(n).resized
+          }
+          if(m==0&&n<=3){
+              io.StageOut.diff.mul.FP64(m)(n) := StageReg(m)(n).resized
+          }
+        })
+      }
+    }
+    val macadd = new Area{
+      val StageReg = Reg(Vec(Vec(UInt(8*2 bits), 1), 4))
+      Array.tabulate(4,1)((m,n) => {
+        StageReg(m)(n) := ((ctl.i.mode.isFP16|ctl.i.mode.isBF16) ? 
+                              //  FP16 or BF16
+                              (io.o.diff.add.BF16(m)(0) @@ io.o.diff.mac.BF16(m)(0)) |
+                          ((ctl.i.mode.isFP32|ctl.i.mode.isTF32) ? 
+                              //  FP32
+                              // val FP32 = out Vec(UInt(48   bits),  4)
+                              (if(m<=1){
+                                io.o.diff.mac.FP32(m)(n).resized
+                              }else{
+                                io.o.diff.add.FP32(m%2)(n).resized
+                              })|
+                          ((ctl.i.mode.isFP64) ?
+                              //  FP64
+                              // val FP64 = out Vec(UInt(106   bits),  1)
+                              (if(m==0){
+                                io.o.diff.mac.FP64(0)(0).resized
+                              }else if(m==1){
+                                io.o.diff.add.FP64(0)(0).resized
+                              }else{
+                                U"0".resize(16)
+                              })|
+                              //  Defalut
+                              U"0".resize(16)
+        )))
+        io.StageOut.diff.mac.BF16(m)(0) := StageReg(m)(0)( 0 to 7)
+        io.StageOut.diff.add.BF16(m)(0) := StageReg(m)(0)(8 to 15)
+        io.StageOut.diff.mac.FP16(m)(0) := StageReg(m)(0)( 0 to 7).resized
+        io.StageOut.diff.add.FP16(m)(0) := StageReg(m)(0)(8 to 15).resized
+        if(m<=1){
+          io.StageOut.diff.mac.FP32(m)(0) := StageReg(m)(0).resized
+          io.StageOut.diff.mac.TF32(m)(0) := StageReg(m)(0).resized
+        }else{
+          io.StageOut.diff.add.FP32(m%2)(0) := StageReg(m)(0).resized
+          io.StageOut.diff.add.TF32(m%2)(0) := StageReg(m)(0).resized
+        }
+        if(m==0){
+          io.StageOut.diff.mac.FP64(0)(0) := StageReg(m)(n).resized
+        }else if(m==1){
+          io.StageOut.diff.add.FP64(0)(0) := StageReg(m)(n).resized
+        }
+      })
+    }
+  }
 }
+
 
 object MULExpCompare_Verilog {
   def main(args: Array[String]): Unit = {
@@ -543,11 +700,44 @@ class MULExpCompare_Verif() extends Component{
         }
       }
     }
+    val StageOut = new Bundle{
+      val max = new Bundle{
+        val BF16 = out Vec(UInt( 7+1 bits), 4)
+        val FP16 = out Vec(UInt( 5+1 bits), 4)
+        val FP32 = out Vec(UInt( 8+1 bits), 2)
+        val TF32 = out Vec(UInt( 8+1 bits), 2)
+        val FP64 = out Vec(UInt(11+1 bits), 1)
+      }
+      val diff = new Bundle{
+        val mul = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 16), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 16), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits),  4), 1)
+        }
+        val mac = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+        val add = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+      }
+    }
   }
   val dut = new MULExpCompare()
   dut.io.i.assignAllByName(io.i)
   dut.ctl.i.assignAllByName(ctl.i)
   io.o.assignAllByName(dut.io.o)
+  io.StageOut.assignAllByName(dut.io.StageOut)
   val verify = new Bundle{
     val o = new Bundle{
       val max = new Bundle{
@@ -597,6 +787,38 @@ class MULExpCompare_Verif() extends Component{
         }
       }
     }
+    val StageOut = Reg(new Bundle{
+      val max = new Bundle{
+        val BF16 = out Vec(UInt( 7+1 bits), 4)
+        val FP16 = out Vec(UInt( 5+1 bits), 4)
+        val FP32 = out Vec(UInt( 8+1 bits), 2)
+        val TF32 = out Vec(UInt( 8+1 bits), 2)
+        val FP64 = out Vec(UInt(11+1 bits), 1)
+      }
+      val diff = new Bundle{
+        val mul = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 16), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 16), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits),  8), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits),  4), 1)
+        }
+        val mac = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+        val add = new Bundle{
+          val BF16 = out Vec(Vec(UInt( 7+1 bits), 1), 4)
+          val FP16 = out Vec(Vec(UInt( 5+1 bits), 1), 4)
+          val FP32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val TF32 = out Vec(Vec(UInt( 8+1 bits), 1), 2)
+          val FP64 = out Vec(Vec(UInt(11+1 bits), 1), 1)
+        }
+      }
+    })
     val equal = new Bundle{
       val max = new Bundle{
         val mul = new Bundle{
@@ -648,6 +870,7 @@ class MULExpCompare_Verif() extends Component{
     val EQUAL = out Bool()
     val sim = Reg(Bool())
   }
+  verify.StageOut.assignAllByName(io.o)
   val MAX = new Area{
     Array.tabulate(4)((n) => {
       verify.o.max.mul.BF16(n) := max(io.i.mul.BF16(n)).resized
@@ -657,12 +880,12 @@ class MULExpCompare_Verif() extends Component{
       verify.o.max.add.BF16(n) := max(io.i.add.BF16(n)(0),io.i.mac.BF16(n)(0)).resized
       verify.o.max.add.FP16(n) := max(io.i.add.FP16(n)(0),io.i.mac.FP16(n)(0)).resized
     })
-    verify.equal.max.mul.BF16 := verify.o.max.mul.BF16===io.o.max.BF16
-    verify.equal.max.mul.FP16 := verify.o.max.mul.FP16===io.o.max.FP16
-    verify.equal.max.mac.BF16 := verify.o.max.mac.BF16===io.o.max.BF16
-    verify.equal.max.mac.FP16 := verify.o.max.mac.FP16===io.o.max.FP16
-    verify.equal.max.add.BF16 := verify.o.max.add.BF16===io.o.max.BF16
-    verify.equal.max.add.FP16 := verify.o.max.add.FP16===io.o.max.FP16
+    verify.equal.max.mul.BF16 := verify.o.max.mul.BF16===io.o.max.BF16 & verify.StageOut.max.BF16 === io.StageOut.max.BF16
+    verify.equal.max.mul.FP16 := verify.o.max.mul.FP16===io.o.max.FP16 & verify.StageOut.max.FP16 === io.StageOut.max.FP16
+    verify.equal.max.mac.BF16 := verify.o.max.mac.BF16===io.o.max.BF16 & verify.StageOut.max.BF16 === io.StageOut.max.BF16
+    verify.equal.max.mac.FP16 := verify.o.max.mac.FP16===io.o.max.FP16 & verify.StageOut.max.FP16 === io.StageOut.max.FP16
+    verify.equal.max.add.BF16 := verify.o.max.add.BF16===io.o.max.BF16 & verify.StageOut.max.BF16 === io.StageOut.max.BF16
+    verify.equal.max.add.FP16 := verify.o.max.add.FP16===io.o.max.FP16 & verify.StageOut.max.FP16 === io.StageOut.max.FP16
     Array.tabulate(2)((n) => {
       verify.o.max.mul.FP32(n) := max(io.i.mul.FP32(n)).resized
       verify.o.max.mul.TF32(n) := max(io.i.mul.TF32(n)).resized
@@ -671,12 +894,12 @@ class MULExpCompare_Verif() extends Component{
       verify.o.max.add.FP32(n) := max(io.i.add.FP32(n)(0),io.i.mac.FP32(n)(0)).resized
       verify.o.max.add.TF32(n) := max(io.i.add.TF32(n)(0),io.i.mac.TF32(n)(0)).resized
     })
-    verify.equal.max.mul.FP32 := verify.o.max.mul.FP32===io.o.max.FP32
-    verify.equal.max.mul.TF32 := verify.o.max.mul.TF32===io.o.max.TF32
-    verify.equal.max.mac.FP32 := verify.o.max.mac.FP32===io.o.max.FP32
-    verify.equal.max.mac.TF32 := verify.o.max.mac.TF32===io.o.max.TF32
-    verify.equal.max.add.FP32 := verify.o.max.add.FP32===io.o.max.FP32
-    verify.equal.max.add.TF32 := verify.o.max.add.TF32===io.o.max.TF32
+    verify.equal.max.mul.FP32 := verify.o.max.mul.FP32===io.o.max.FP32 & verify.StageOut.max.FP32 === io.StageOut.max.FP32
+    verify.equal.max.mul.TF32 := verify.o.max.mul.TF32===io.o.max.TF32 & verify.StageOut.max.TF32 === io.StageOut.max.TF32
+    verify.equal.max.mac.FP32 := verify.o.max.mac.FP32===io.o.max.FP32 & verify.StageOut.max.FP32 === io.StageOut.max.FP32
+    verify.equal.max.mac.TF32 := verify.o.max.mac.TF32===io.o.max.TF32 & verify.StageOut.max.TF32 === io.StageOut.max.TF32
+    verify.equal.max.add.FP32 := verify.o.max.add.FP32===io.o.max.FP32 & verify.StageOut.max.FP32 === io.StageOut.max.FP32
+    verify.equal.max.add.TF32 := verify.o.max.add.TF32===io.o.max.TF32 & verify.StageOut.max.TF32 === io.StageOut.max.TF32
     Array.tabulate(1)((n) => {
       verify.o.max.mul.FP64(n) := max(io.i.mul.FP64(n)).resized
       verify.o.max.mac.FP64(n) := max(max(io.i.mul.FP64(n)),io.i.mac.FP64(n)(0)).resized
@@ -714,21 +937,21 @@ class MULExpCompare_Verif() extends Component{
       verify.o.diff.mac.FP64(m)(n) := io.o.max.FP64(m) - io.i.mac.FP64(m)(n)
       verify.o.diff.add.FP64(m)(n) := io.o.max.FP64(m) - io.i.add.FP64(m)(n)
     })
-    verify.equal.diff.mul.BF16 := verify.o.diff.mul.BF16===io.o.diff.mul.BF16
-    verify.equal.diff.mul.FP16 := verify.o.diff.mul.FP16===io.o.diff.mul.FP16
-    verify.equal.diff.mac.BF16 := verify.o.diff.mac.BF16===io.o.diff.mac.BF16
-    verify.equal.diff.mac.FP16 := verify.o.diff.mac.FP16===io.o.diff.mac.FP16
-    verify.equal.diff.add.BF16 := verify.o.diff.add.BF16===io.o.diff.add.BF16
-    verify.equal.diff.add.FP16 := verify.o.diff.add.FP16===io.o.diff.add.FP16
-    verify.equal.diff.mul.FP32 := verify.o.diff.mul.FP32===io.o.diff.mul.FP32
-    verify.equal.diff.mul.TF32 := verify.o.diff.mul.TF32===io.o.diff.mul.TF32
-    verify.equal.diff.mac.FP32 := verify.o.diff.mac.FP32===io.o.diff.mac.FP32
-    verify.equal.diff.mac.TF32 := verify.o.diff.mac.TF32===io.o.diff.mac.TF32
-    verify.equal.diff.add.FP32 := verify.o.diff.add.FP32===io.o.diff.add.FP32
-    verify.equal.diff.add.TF32 := verify.o.diff.add.TF32===io.o.diff.add.TF32
-    verify.equal.diff.mul.FP64 := verify.o.diff.mul.FP64===io.o.diff.mul.FP64
-    verify.equal.diff.mac.FP64 := verify.o.diff.mac.FP64===io.o.diff.mac.FP64
-    verify.equal.diff.add.FP64 := verify.o.diff.add.FP64===io.o.diff.add.FP64
+    verify.equal.diff.mul.BF16 := verify.o.diff.mul.BF16===io.o.diff.mul.BF16 & verify.StageOut.diff.mul.BF16  === io.StageOut.diff.mul.BF16 
+    verify.equal.diff.mul.FP16 := verify.o.diff.mul.FP16===io.o.diff.mul.FP16 & verify.StageOut.diff.mul.FP16  === io.StageOut.diff.mul.FP16 
+    verify.equal.diff.mac.BF16 := verify.o.diff.mac.BF16===io.o.diff.mac.BF16 & verify.StageOut.diff.mac.BF16  === io.StageOut.diff.mac.BF16 
+    verify.equal.diff.mac.FP16 := verify.o.diff.mac.FP16===io.o.diff.mac.FP16 & verify.StageOut.diff.mac.FP16  === io.StageOut.diff.mac.FP16 
+    verify.equal.diff.add.BF16 := verify.o.diff.add.BF16===io.o.diff.add.BF16 & verify.StageOut.diff.add.BF16  === io.StageOut.diff.add.BF16 
+    verify.equal.diff.add.FP16 := verify.o.diff.add.FP16===io.o.diff.add.FP16 & verify.StageOut.diff.add.FP16  === io.StageOut.diff.add.FP16 
+    verify.equal.diff.mul.FP32 := verify.o.diff.mul.FP32===io.o.diff.mul.FP32 & verify.StageOut.diff.mul.FP32  === io.StageOut.diff.mul.FP32 
+    verify.equal.diff.mul.TF32 := verify.o.diff.mul.TF32===io.o.diff.mul.TF32 & verify.StageOut.diff.mul.TF32  === io.StageOut.diff.mul.TF32 
+    verify.equal.diff.mac.FP32 := verify.o.diff.mac.FP32===io.o.diff.mac.FP32 & verify.StageOut.diff.mac.FP32  === io.StageOut.diff.mac.FP32 
+    verify.equal.diff.mac.TF32 := verify.o.diff.mac.TF32===io.o.diff.mac.TF32 & verify.StageOut.diff.mac.TF32  === io.StageOut.diff.mac.TF32 
+    verify.equal.diff.add.FP32 := verify.o.diff.add.FP32===io.o.diff.add.FP32 & verify.StageOut.diff.add.FP32  === io.StageOut.diff.add.FP32 
+    verify.equal.diff.add.TF32 := verify.o.diff.add.TF32===io.o.diff.add.TF32 & verify.StageOut.diff.add.TF32  === io.StageOut.diff.add.TF32 
+    verify.equal.diff.mul.FP64 := verify.o.diff.mul.FP64===io.o.diff.mul.FP64 & verify.StageOut.diff.mul.FP64  === io.StageOut.diff.mul.FP64 
+    verify.equal.diff.mac.FP64 := verify.o.diff.mac.FP64===io.o.diff.mac.FP64 & verify.StageOut.diff.mac.FP64  === io.StageOut.diff.mac.FP64 
+    verify.equal.diff.add.FP64 := verify.o.diff.add.FP64===io.o.diff.add.FP64 & verify.StageOut.diff.add.FP64  === io.StageOut.diff.add.FP64 
   }
   when(ctl.i.mode.isBF16) {
     when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.max.mul.BF16 & verify.equal.diff.mul.BF16
@@ -781,7 +1004,7 @@ object MULExpCompare_Sim {
       defaultConfigForClockDomains = ClockDomainConfig(resetKind = SYNC))
     
     val compiled = SimConfig
-                    // .withWave
+                    .withWave
                     .withConfig(simConfig)
                     // .allOptimisation
                     .workspacePath("simWorkspace")
@@ -985,14 +1208,14 @@ object MULExpCompare_Sim {
       }
       println(Console.GREEN+"** FINISHED ** "+name+" with "+times+" times")
     }
-    sim_MUL_BF16(times=1000000)
-    sim_MAC_BF16(times=1000000)
-    sim_ADD_BF16(times=1000000)
-    sim_MUL_FP32(times=1000000)
-    sim_MAC_FP32(times=1000000)
-    sim_ADD_FP32(times=1000000)
-    sim_MUL_FP64(times=1000000)
-    sim_MAC_FP64(times=1000000)
-    sim_ADD_FP64(times=1000000)
+    sim_MUL_BF16(times=100)
+    sim_MAC_BF16(times=100)
+    sim_ADD_BF16(times=100)
+    sim_MUL_FP32(times=100)
+    sim_MAC_FP32(times=100)
+    sim_ADD_FP32(times=100)
+    sim_MUL_FP64(times=100)
+    sim_MAC_FP64(times=100)
+    sim_ADD_FP64(times=100)
   }
 }
