@@ -12,20 +12,50 @@ import spinal.lib._
 ** --------------------------------   |_| \_\   |_|   |_____|   -------------------------------- **
 \* --------------------------------                             -------------------------------- */
 
-class ADDBasic16() extends Component{
-  val io = new Bundle{
+class ADDBasic16(bitWidth: Int = 27) extends Component{
+  val ctl = new Bundle{
     val i = new Bundle{
-      val carry = in Vec(UInt( 1 bits), 16)
-      val input = in Vec(UInt(23 bits), 16)
-    }
-    val o = new Bundle{
-      val sum = out UInt(23+4+1 bits)
+      val mode = in (Mode())
+      val isSign = in Bool()
+      val signed = True
     }
   }
-    io.o.sum := ((((io.i.input( 0)+^io.i.input( 1))+^(io.i.input( 2)+^io.i.input( 3)))+^
-                  ((io.i.input( 4)+^io.i.input( 5))+^(io.i.input( 6)+^io.i.input( 7))))+^
-                 (((io.i.input( 8)+^io.i.input( 9))+^(io.i.input(10)+^io.i.input(11)))+^
-                  ((io.i.input(12)+^io.i.input(13))+^(io.i.input(14)+^io.i.input(15)))))
+  val io = new Bundle{
+    val i = new Bundle{
+      val sign = new Bundle{
+        val mul  = in Vec(Bool(),16)
+        val mac  = in Bool()
+        val add  = in Bool()
+      }
+      val carry = in UInt(3 bits)
+      val mant = new Bundle{
+        val mul = in Vec(UInt(bitWidth bits), 16)
+        val mac = in UInt(32 bits)
+        val add = in UInt(32 bits)
+      }
+    }
+    val o = new Bundle{
+        val sum      = out UInt(32 bits)
+        val overflow = out Bool()
+    }
+  }
+  def signedBits(that:UInt)={
+    ((ctl.i.signed?that.msb.asUInt|U"0") @@ that)
+  }
+  val sum_mul_0 = Array.tabulate(8)((m) => {
+    signedBits(io.i.sign.mul(2*m).asUInt+io.i.mant.mul(2*m)) + signedBits(io.i.sign.mul(2*m+1).asUInt+io.i.mant.mul(2*m+1)) 
+  })
+  val sum_mul_1 = Array.tabulate(4)((m) => {
+    signedBits(sum_mul_0(2*m))+signedBits(sum_mul_0(2*m+1))
+  })
+  val sum_mul_2 = Array.tabulate(2)((m) => {
+    signedBits(sum_mul_1(2*m))+signedBits(sum_mul_1(2*m+1))
+  })
+  val sum_mul_3 = Array.tabulate(1)((m) => {
+    signedBits(signedBits(sum_mul_2(2*m))+signedBits(sum_mul_2(2*m+1)))+io.i.carry
+  })
+  io.o.sum := (ctl.i.mode.isADD?io.i.mant.add|sum_mul_3(0))+(ctl.i.mode.isMAC?io.i.mant.mac|U(0,32 bits))+(ctl.i.isSign?((ctl.i.mode.isMAC? io.i.sign.mac.asUInt|U"0")+^(ctl.i.mode.isADD? io.i.sign.add.asUInt|U"0"))|U"00")
+  
   noIoPrefix()
 }
 
@@ -162,34 +192,129 @@ class ADDMulti() extends Component{
     OneComplement.mac.FP64(m)(0) := oneComplement(io.i.mant.mac.FP64(m)(0),io.i.sign.mac.FP64(m)(0))
     OneComplement.add.FP64(m)(0) := oneComplement(io.i.mant.add.FP64(m)(0),io.i.sign.add.FP64(m)(0))
   })
-
-  // Array.tabulate(4)((m) => {
-  //   io.o.INT8(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.INT8(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.INT8(m),OneComplement.mac.INT8(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.INT8(m),OneComplement.mac.INT8(m))| S"0".resized))).resized
-  // })
-  // Array.tabulate(4)((m) => {
-  //   io.o.BF16(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.BF16(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.BF16(m),OneComplement.mac.BF16(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.BF16(m),OneComplement.mac.BF16(m))| S"0".resized))).resized
-  //   io.o.FP16(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.FP16(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.FP16(m),OneComplement.mac.FP16(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.FP16(m),OneComplement.mac.FP16(m))| S"0".resized))).resized
-  // })
-  // Array.tabulate(2)((m) => {
-  //   io.o.FP32(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.FP32(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.FP32(m),OneComplement.mac.FP32(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.FP32(m),OneComplement.mac.FP32(m))| S"0".resized))).resized
-  //   io.o.TF32(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.TF32(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.TF32(m),OneComplement.mac.TF32(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.TF32(m),OneComplement.mac.TF32(m))| S"0".resized))).resized
-  // })
-  // Array.tabulate(1)((m) => {
-  //   io.o.FP64(m) :=(ctl.i.mode.isMUL? sum(OneComplement.mul.FP64(m)) |
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.mul.FP64(m),OneComplement.mac.FP64(m))| 
-  //                  (ctl.i.mode.isMAC? sum(OneComplement.add.FP64(m),OneComplement.mac.FP64(m))| S"0".resized))).resized
-  // })
+  val ADDs = Array.tabulate(4)((m) => {new ADDBasic16()})
+  Array.tabulate(4)((m) => {
+    ADDs(m).ctl.i.mode := ctl.i.mode
+    ADDs(m).ctl.i.isSign := (ctl.i.mode.isINT8 | ctl.i.mode.isBF16 | ctl.i.mode.isFP16) ? True | 
+                                               ((ctl.i.mode.isTF32 | ctl.i.mode.isFP32) ? (m%2 match {
+                                                                                            case 0 => True
+                                                                                            case 1 => False
+                                                                                          })|
+                                                                     (ctl.i.mode.isFP64 ? (m match {
+                                                                                            case 0 => True
+                                                                                            case _ => False
+                                                                                          })|
+                                                                                          False))
+    ADDs(m).io.i.sign.add := ctl.i.mode.isINT8 ? False |
+      ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? io.i.sign.add.FP16(m)(0) | 
+      ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                    case 0 => io.i.sign.add.FP32(m%2)(0)
+                                                    case 1 => False
+                                                  }) | 
+                            (ctl.i.mode.isFP64 ? (m match {
+                                                    case 0 => io.i.sign.add.FP64(0)(0)
+                                                    case 1 => False
+                                                    case 2 => False
+                                                    case 3 => False
+                                                  }) | 
+                                                 False)))
+    ADDs(m).io.i.sign.mac := ctl.i.mode.isINT8 ? False |
+      ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? io.i.sign.mac.FP16(m)(0) | 
+      ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                    case 0 => io.i.sign.mac.FP32(m%2)(0)
+                                                    case 1 => False
+                                                  }) | 
+                            (ctl.i.mode.isFP64 ? (m match {
+                                                    case 0 => io.i.sign.mac.FP64(0)(0)
+                                                    case 1 => False
+                                                    case 2 => False
+                                                    case 3 => False
+                                                  }) | 
+                                                 False)))
+    ADDs(m).io.i.mant.add := ctl.i.mode.isINT8 ? OneComplement.add.INT8(m)(0) |
+      ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? OneComplement.add.FP16(m)(0).resized | 
+      ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                    case 0 => OneComplement.add.FP32(m%2)(0).resized
+                                                    case 1 => U(0, 32 bits)
+                                                    // case 1 => OneComplement.add.FP32(m%2)(0)(27 to 3)
+                                                  }) | 
+                            (ctl.i.mode.isFP64 ? (m match {
+                                                    case 0 => OneComplement.add.FP64(0)(0)( 0 to 27-1).resized
+                                                    case 1 => OneComplement.add.FP64(0)(0)(27 to 53-1).resized
+                                                    case 2 => U(0, 32 bits)
+                                                    case 3 => U(0, 32 bits)
+                                                    // case 1 => OneComplement.add.FP32(m%2)(0)(27 to 3)
+                                                  }) | 
+                                                 U(0, 32 bits))))
+    ADDs(m).io.i.mant.mac := ctl.i.mode.isINT8 ? OneComplement.mac.INT8(m)(0) |
+          ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? OneComplement.mac.FP16(m)(0).resized | 
+          ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                        case 0 => OneComplement.mac.FP32(m%2)(0).resized
+                                                        case 1 => U(0, 32 bits)
+                                                        // case 1 => OneComplement.mac.FP32(m%2)(0)(27 to 3)
+                                                      }) | 
+                                (ctl.i.mode.isFP64 ? (m match {
+                                                        case 0 => OneComplement.mac.FP64(0)(0)( 0 to 27-1).resized
+                                                        case 1 => OneComplement.mac.FP64(0)(0)(27 to 53-1).resized
+                                                        case 2 => U(0, 32 bits)
+                                                        case 3 => U(0, 32 bits)
+                                                        // case 1 => OneComplement.mac.FP32(m%2)(0)(27 to 3)
+                                                      }) | 
+                                                     U(0, 32 bits))))
+    ADDs(m).io.i.carry   := (ctl.i.mode.isINT8 | ctl.i.mode.isBF16 | ctl.i.mode.isFP16) ? U(0, 3 bits) | 
+                                               ((ctl.i.mode.isTF32 | ctl.i.mode.isFP32) ? (m%2 match {
+                                                                                            case 0 => U(0, 3 bits)
+                                                                                            case 1 => ADDs(m-1).io.o.sum(27 to 29)
+                                                                                          })|
+                                                                     (ctl.i.mode.isFP64 ? (m match {
+                                                                                            case 0 => U(0, 3 bits)
+                                                                                            case _ => ADDs(m-1).io.o.sum(27 to 29)
+                                                                                          })|
+                                                                                          U(0, 3 bits)))
+    Array.tabulate(16)((n) => {
+      ADDs(m).io.i.sign.mul(n) := ctl.i.mode.isINT8 ? False |
+           ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? io.i.sign.mul.FP16(m)(n) | 
+           ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                         case 0 => (if (n<8) io.i.sign.mul.FP32(m%2)(n) else False)
+                                                         case 1 => False
+                                                       }) |
+                                 (ctl.i.mode.isFP64 ? (m match {
+                                                         case 0 => (if (n<4) io.i.sign.mul.FP64(m)(n) else False)
+                                                         case 1 => False
+                                                         case 2 => False
+                                                         case 3 => False
+                                                       }) | 
+                                                      False)))
+      ADDs(m).io.i.mant.mul(n) := ctl.i.mode.isINT8 ? (OneComplement.mul.INT8(m)(n).asSInt).resize(27).asUInt |
+           ((ctl.i.mode.isFP16 | ctl.i.mode.isBF16) ? OneComplement.mul.FP16(m)(n).resized | 
+           ((ctl.i.mode.isFP32 | ctl.i.mode.isTF32) ? (m%2 match {
+                                                         case 0 => (if (n<8) OneComplement.mul.FP32(m%2)(n)( 0 to 26).resized else U(0, 27 bits))
+                                                         case 1 => (if (n<8) OneComplement.mul.FP32(m%2)(n)(27 to 48).resized else U(0, 27 bits))
+                                                       }) |
+                                 (ctl.i.mode.isFP64 ? (m match {
+                                                         case 0 => (if (n<4) OneComplement.mul.FP64(0)(n)( 0 to  26).resized else U(0, 27 bits))
+                                                         case 1 => (if (n<4) OneComplement.mul.FP64(0)(n)(27 to  53).resized else U(0, 27 bits))
+                                                         case 2 => (if (n<4) OneComplement.mul.FP64(0)(n)(54 to  80).resized else U(0, 27 bits))
+                                                         case 3 => (if (n<4) OneComplement.mul.FP64(0)(n)(81 to 106).resized else U(0, 27 bits))
+                                                       }) | 
+                                                      U(0, 27 bits))))
+    })
+  })
+  Array.tabulate(4)((m) => {
+    io.o.INT8(m) := ADDs(m).io.o.sum.asSInt.resized
+    io.o.FP16(m) := ADDs(m).io.o.sum.asSInt.resized
+    io.o.BF16(m) := ADDs(m).io.o.sum.asSInt.resized
+  })
+  Array.tabulate(2)((m) => {
+    io.o.FP32(m) := (ADDs(2*m+1).io.o.sum(27-27 to 51-27) @@ ADDs(2*m).io.o.sum(0 to 26)).asSInt
+    io.o.TF32(m) := ADDs(2*m).io.o.sum(0 to 25).asSInt
+  })
+  Array.tabulate(1)((m) => {
+    io.o.FP64(m) := (ADDs(3).io.o.sum(81-3*27 to 108-3*27) @@ ADDs(2).io.o.sum(54-2*27 to 80-2*27) @@ ADDs(1).io.o.sum(27-1*27 to 53-1*27) @@ ADDs(0).io.o.sum(0 to 26)).asSInt
+  })
 }
+
+
 object ADDMulti_Verilog {
   def main(args: Array[String]): Unit = {
     val path = "simWorkspace/ADDMulti/rtl"
@@ -331,6 +456,7 @@ class ADDMulti_Verif() extends Component{
     }
     val equal = new Bundle{
       val mul = new Bundle{
+        val INT8 = out Bool()
         val BF16 = out Bool()
         val FP16 = out Bool()
         val FP32 = out Bool()
@@ -338,6 +464,7 @@ class ADDMulti_Verif() extends Component{
         val FP64 = out Bool()
       }
       val mac = new Bundle{
+        val INT8 = out Bool()
         val BF16 = out Bool()
         val FP16 = out Bool()
         val FP32 = out Bool()
@@ -345,6 +472,7 @@ class ADDMulti_Verif() extends Component{
         val FP64 = out Bool()
       }
       val add = new Bundle{
+        val INT8 = out Bool()
         val BF16 = out Bool()
         val FP16 = out Bool()
         val FP32 = out Bool()
@@ -434,6 +562,9 @@ class ADDMulti_Verif() extends Component{
                    (ctl.i.mode.isMAC? sum(OneComplement.mul.FP64(m),OneComplement.mac.FP64(m))| 
                    (ctl.i.mode.isMAC? sum(OneComplement.add.FP64(m),OneComplement.mac.FP64(m))| S"0".resized))).resized
   })
+    verify.equal.mul.INT8 := verify.o.INT8===io.o.INT8
+    verify.equal.mac.INT8 := verify.o.INT8===io.o.INT8
+    verify.equal.add.INT8 := verify.o.INT8===io.o.INT8
     verify.equal.mul.BF16 := verify.o.BF16===io.o.BF16
     verify.equal.mul.FP16 := verify.o.FP16===io.o.FP16
     verify.equal.mac.BF16 := verify.o.BF16===io.o.BF16
@@ -449,7 +580,12 @@ class ADDMulti_Verif() extends Component{
     verify.equal.mul.FP64 := verify.o.FP64===io.o.FP64
     verify.equal.mac.FP64 := verify.o.FP64===io.o.FP64
     verify.equal.add.FP64 := verify.o.FP64===io.o.FP64
-  when(ctl.i.mode.isBF16) {
+  when(ctl.i.mode.isINT8) {
+    when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.mul.INT8
+    }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.mac.INT8
+    }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.add.INT8
+    }.otherwise {verify.EQUAL := False}
+  }.elsewhen(ctl.i.mode.isBF16) {
     when(ctl.i.mode.isMUL)       {verify.EQUAL := verify.equal.mul.BF16
     }.elsewhen(ctl.i.mode.isMAC) {verify.EQUAL := verify.equal.mac.BF16
     }.elsewhen(ctl.i.mode.isADD) {verify.EQUAL := verify.equal.add.BF16
@@ -491,10 +627,7 @@ import spinal.sim._
 import spinal.core.sim._
 
 
-
-
 object ADDMulti_Sim {
-
   def main(args: Array[String]) {
 
     val simConfig = SpinalConfig(
@@ -502,12 +635,31 @@ object ADDMulti_Sim {
       defaultConfigForClockDomains = ClockDomainConfig(resetKind = SYNC))
     
     val compiled = SimConfig
-                    .withWave
+                    // .withWave
                     .withConfig(simConfig)
                     // .allOptimisation
                     .workspacePath("simWorkspace")
                     .compile(new ADDMulti_Verif())
-
+    def sim_MUL_INT8(times: Int = 10, seed: Int = scala.util.Random.nextInt()){
+      def name: String = "sim_MUL_INT8"
+      compiled.doSim(name,seed){dut =>
+        //Fork a process to generate the reset and the clock on the dut
+        dut.clockDomain.forkStimulus(period = 10)
+        dut.ctl.i.mode #= ModeConfig.MUL_INT8
+        dut.clockDomain.waitRisingEdge()
+        for(_times <- 0 to times-1 ){
+          Array.tabulate(16,4)((m,p) => {
+            dut.io.i.mant.mul.INT8(p)(m) #= BigInt(17, scala.util.Random)-65536 //2^17-1 -2^16
+          })
+          dut.clockDomain.waitRisingEdge()
+          val EQUAL = dut.verify.EQUAL.toBoolean
+          if (!EQUAL) {
+            System.err.println("** ERROR ** "+name+" with seed "+seed)
+          }
+        }
+      }
+      println(Console.GREEN+"** FINISHED ** "+name+" with "+times+" times")
+    }
     def sim_MUL_BF16(times: Int = 10, seed: Int = scala.util.Random.nextInt()){
       def name: String = "sim_MUL_BF16"
       compiled.doSim(name,seed){dut =>
@@ -552,8 +704,8 @@ object ADDMulti_Sim {
     //   }
     //   println(Console.GREEN+"** FINISHED ** "+name+" with "+times+" times")
     // }
-    
-    sim_MUL_BF16(times=1000)
+    sim_MUL_INT8(times=10000000)
+    // sim_MUL_BF16(times=1000)
     // sim_MAC_BF16(times=1000000)
     // sim_ADD_BF16(times=1000000)
     // sim_MUL_FP32(times=1000000)
