@@ -251,8 +251,8 @@ class ADDMulti() extends Component{
                             (ctl.i.mode.isFP64 ? (m match {
                                                     case 0 => OneComplement.add.FP64(0)(0)( 0 to 27-1).resized
                                                     case 1 => OneComplement.add.FP64(0)(0)(27 to 53).asSInt.resize(32).asUInt
-                                                    case 2 => U(0, 32 bits)
-                                                    case 3 => U(0, 32 bits)
+                                                    case 2 => OneComplement.add.FP64(0)(0)(53).asSInt.resize(32).asUInt
+                                                    case 3 => OneComplement.add.FP64(0)(0)(53).asSInt.resize(32).asUInt
                                                     // case 1 => OneComplement.add.FP32(m%2)(0)(27 to 3)
                                                   }) | 
                                                  U(0, 32 bits))))
@@ -266,8 +266,8 @@ class ADDMulti() extends Component{
                                 (ctl.i.mode.isFP64 ? (m match {
                                                         case 0 => OneComplement.mac.FP64(0)(0)( 0 to 27-1).resized
                                                         case 1 => OneComplement.mac.FP64(0)(0)(27 to 53).asSInt.resize(32).asUInt
-                                                        case 2 => U(0, 32 bits)
-                                                        case 3 => U(0, 32 bits)
+                                                        case 2 => OneComplement.mac.FP64(0)(0)(53).asSInt.resize(32).asUInt
+                                                        case 3 => OneComplement.mac.FP64(0)(0)(53).asSInt.resize(32).asUInt
                                                         // case 1 => OneComplement.mac.FP32(m%2)(0)(27 to 3)
                                                       }) | 
                                                      U(0, 32 bits))))
@@ -934,8 +934,8 @@ object ADDMulti_Sim {
     // sim_MUL_FP32(times=100000)
     // sim_MAC_FP32(times=100000)
     // sim_ADD_FP32(times=100000)
-    // sim_MUL_FP64(times=100000)
-    sim_MAC_FP64(times=100000,seed = -75150430)
-    sim_ADD_FP64(times=100000)
+    sim_MUL_FP64(times=10)
+    sim_MAC_FP64(times=10,seed = -75150430)
+    sim_ADD_FP64(times=10)
   }
 }
